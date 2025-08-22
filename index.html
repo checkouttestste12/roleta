@@ -57,38 +57,144 @@
 
     <!-- Conteúdo Principal -->
     <main class="main-content">
-        <!-- Seção Home com Roleta -->
+        <!-- Seção Home -->
         <section id="home" class="home-section">
             <div class="hero">
                 <h1>Bem-vindo à Roleta Gamificada</h1>
                 <p>Gire, ganhe e divirta-se com prêmios reais!</p>
-                <div class="giros-gratis-info">
-                    <h3>🎁 3 Giros Grátis para Novos Usuários!</h3>
-                    <p>Cadastre-se e ganhe até R$ 75,00!</p>
-                </div>
             </div>
             
-            <!-- Seção da Roleta na Página Principal -->
+            <!-- Bloco de Giros Grátis com Roleta -->
+            <div class="giros-gratis-container" id="giros-gratis-container">
+                <div class="giros-gratis-info">
+                    <h3 id="giros-title">🎁 3 Giros Grátis para Novos Usuários!</h3>
+                    <p id="giros-subtitle">Cadastre-se e ganhe até R$ 75,00!</p>
+                    
+                    <!-- Roleta dos Giros Grátis -->
+                    <div class="roleta-gratis-container" id="roleta-gratis-container">
+                        <div class="roleta-wrapper-small">
+                            <div class="roleta-small" id="roleta">
+                                <div class="setor setor-vazio" data-premio="0">Vazio</div>
+                                <div class="setor setor-premio setor-baixo" data-premio="25">R$ 25</div>
+                                <div class="setor setor-vazio" data-premio="0">Vazio</div>
+                                <div class="setor setor-premio setor-medio" data-premio="50">R$ 50</div>
+                                <div class="setor setor-vazio" data-premio="0">Vazio</div>
+                                <div class="setor setor-premio setor-alto" data-premio="75">R$ 75</div>
+                                <div class="setor setor-vazio" data-premio="0">Vazio</div>
+                                <div class="setor setor-vazio" data-premio="0">Vazio</div>
+                            </div>
+                            <div class="roleta-ponteiro-small"></div>
+                        </div>
+                        <div class="roleta-controls-small">
+                            <button class="btn-girar-small" id="btn-girar">Girar</button>
+                        </div>
+                        <div class="giros-restantes-small" id="giros-info" style="display: none;">
+                            <p>Giros restantes: <span id="giros-count">3</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção Mesas Pagas -->
+        <section id="mesas" class="mesas-section">
+            <h2>Mesas com Apostas</h2>
+            <div class="mesas-grid">
+                <div class="mesa-card" data-valor="5">
+                    <div class="mesa-header">
+                        <h3>Mesa R$ 5,00</h3>
+                    </div>
+                    <div class="mesa-roleta-mini">
+                        <div class="roleta-preview"></div>
+                    </div>
+                    <div class="mesa-premios">
+                        <p>Prêmios:</p>
+                        <ul>
+                            <li>R$ 10,00</li>
+                            <li>R$ 15,00</li>
+                            <li>R$ 20,00</li>
+                        </ul>
+                    </div>
+                    <button class="btn-jogar">Jogar</button>
+                </div>
+
+                <div class="mesa-card" data-valor="10">
+                    <div class="mesa-header">
+                        <h3>Mesa R$ 10,00</h3>
+                    </div>
+                    <div class="mesa-roleta-mini">
+                        <div class="roleta-preview"></div>
+                    </div>
+                    <div class="mesa-premios">
+                        <p>Prêmios:</p>
+                        <ul>
+                            <li>R$ 20,00</li>
+                            <li>R$ 30,00</li>
+                            <li>R$ 40,00</li>
+                        </ul>
+                    </div>
+                    <button class="btn-jogar">Jogar</button>
+                </div>
+
+                <div class="mesa-card" data-valor="15">
+                    <div class="mesa-header">
+                        <h3>Mesa R$ 15,00</h3>
+                    </div>
+                    <div class="mesa-roleta-mini">
+                        <div class="roleta-preview"></div>
+                    </div>
+                    <div class="mesa-premios">
+                        <p>Prêmios:</p>
+                        <ul>
+                            <li>R$ 40,00</li>
+                            <li>R$ 60,00</li>
+                            <li>R$ 75,00</li>
+                        </ul>
+                    </div>
+                    <button class="btn-jogar">Jogar</button>
+                </div>
+
+                <div class="mesa-card" data-valor="20">
+                    <div class="mesa-header">
+                        <h3>Mesa R$ 20,00</h3>
+                    </div>
+                    <div class="mesa-roleta-mini">
+                        <div class="roleta-preview"></div>
+                    </div>
+                    <div class="mesa-premios">
+                        <p>Prêmios:</p>
+                        <ul>
+                            <li>R$ 75,00</li>
+                            <li>R$ 100,00</li>
+                            <li>R$ 150,00</li>
+                        </ul>
+                    </div>
+                    <button class="btn-jogar">Jogar</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção da Roleta das Mesas (oculta inicialmente) -->
+        <section id="roleta-section" class="roleta-section hidden">
             <div class="roleta-container">
-                <h2>Roleta dos Prêmios</h2>
+                <h2>Mesa R$ <span id="mesa-valor">5</span>,00</h2>
                 <div class="roleta-wrapper">
-                    <div class="roleta" id="roleta">
+                    <div class="roleta" id="roleta-mesa">
                         <div class="setor setor-vazio" data-premio="0">Vazio</div>
-                        <div class="setor setor-premio setor-baixo" data-premio="25">R$ 25</div>
+                        <div class="setor setor-premio setor-baixo" data-premio="10">R$ 10</div>
                         <div class="setor setor-vazio" data-premio="0">Vazio</div>
-                        <div class="setor setor-premio setor-medio" data-premio="50">R$ 50</div>
+                        <div class="setor setor-premio setor-medio" data-premio="15">R$ 15</div>
                         <div class="setor setor-vazio" data-premio="0">Vazio</div>
-                        <div class="setor setor-premio setor-alto" data-premio="75">R$ 75</div>
+                        <div class="setor setor-premio setor-alto" data-premio="20">R$ 20</div>
                         <div class="setor setor-vazio" data-premio="0">Vazio</div>
                         <div class="setor setor-vazio" data-premio="0">Vazio</div>
                     </div>
                     <div class="roleta-ponteiro"></div>
                 </div>
                 <div class="roleta-controls">
-                    <button class="btn-girar" id="btn-girar">Girar</button>
-                </div>
-                <div class="giros-restantes" id="giros-info" style="display: none;">
-                    <p>Giros restantes: <span id="giros-count">3</span></p>
+                    <button class="btn-parar-roleta" id="btn-parar-roleta" disabled>Parar Roleta</button>
+                    <button class="btn-girar" id="btn-girar-mesa">Girar</button>
+                    <button class="btn-voltar" id="btn-voltar">Voltar às Mesas</button>
                 </div>
             </div>
         </section>
