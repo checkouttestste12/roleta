@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roleta Gamificada - Apostas Online</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header Fixo -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <h1>🎰 RoletaWin</h1>
+            </div>
+            <nav class="nav-menu">
+                <a href="#home" class="nav-link">Home</a>
+                <a href="#mesas" class="nav-link">Mesas</a>
+                <a href="#depositar" class="nav-link">Depositar</a>
+                <a href="#historico" class="nav-link">Histórico</a>
+            </nav>
+            <div class="user-info">
+                <div class="saldo-display">
+                    <span class="saldo-icon">💰</span>
+                    <span class="saldo-valor">R$ <span id="saldo-atual">0,00</span></span>
+                </div>
+                <button class="btn-sacar" id="btn-sacar">Sacar</button>
+            </div>
+            <div class="mobile-menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Tela de Cadastro -->
+    <div class="cadastro-overlay" id="cadastro-overlay">
+        <div class="cadastro-container">
+            <h2>Criar Conta</h2>
+            <p>Receba 3 giros grátis no cadastro!</p>
+            <form class="cadastro-form" id="cadastro-form">
+                <div class="input-group">
+                    <input type="text" id="nome" placeholder="Nome completo" required>
+                </div>
+                <div class="input-group">
+                    <input type="email" id="email" placeholder="E-mail" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="senha" placeholder="Senha" required>
+                </div>
+                <button type="submit" class="btn-cadastro">Criar Conta</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <main class="main-content">
+        <!-- Seção Home -->
+        <section id="home" class="home-section">
+            <div class="hero">
+                <h1>Bem-vindo à Roleta Gamificada</h1>
+                <p>Gire, ganhe e divirta-se com prêmios reais!</p>
+            </div>
+        </section>
+
+        <!-- Seção Mesas -->
+        <section id="mesas" class="mesas-section">
+            <h2>Escolha sua Mesa</h2>
+            <div class="mesas-grid">
+                <div class="mesa-card" data-valor="5">
+                    <div class="mesa-header">
+                        <h3>Mesa R$ 5,00</h3>
+                    </div>
+                    <div class="mesa-roleta-mini">
+                        <div class="roleta-preview"></div>
+                    </div>
+                    <div class="mesa-premios">
+                        <p>Prêmios:</p>
+                        <ul>
+                            <li>R$ 10,00</li>
+                            <li>R$ 15,00</li>
+                            <li>R$ 20,00</li>
+                        </ul>
+                    </div>
+                    <button class="btn-jogar">Jogar</button>
+                </div>
+
+                <div class="mesa-card" data-valor="10">
+                    <div class="mesa-header">
+                        <h3>Mesa R$ 10,00</h3>
+                    </div>
+                    <div class="mesa-roleta-mini">
+                        <div class="roleta-preview"></div>
+                    </div>
+                    <div class="mesa-premios">
+                        <p>Prêmios:</p>
+                        <ul>
+                            <li>R$ 20,00</li>
+                            <li>R$ 30,00</li>
+                            <li>R$ 40,00</li>
+                        </ul>
+                    </div>
+                    <button class="btn-jogar">Jogar</button>
+                </div>
+
+                <div class="mesa-card" data-valor="15">
+                    <div class="mesa-header">
+                        <h3>Mesa R$ 15,00</h3>
+                    </div>
+                    <div class="mesa-roleta-mini">
+                        <div class="roleta-preview"></div>
+                    </div>
+                    <div class="mesa-premios">
+                        <p>Prêmios:</p>
+                        <ul>
+                            <li>R$ 40,00</li>
+                            <li>R$ 60,00</li>
+                            <li>R$ 75,00</li>
+                        </ul>
+                    </div>
+                    <button class="btn-jogar">Jogar</button>
+                </div>
+
+                <div class="mesa-card" data-valor="20">
+                    <div class="mesa-header">
+                        <h3>Mesa R$ 20,00</h3>
+                    </div>
+                    <div class="mesa-roleta-mini">
+                        <div class="roleta-preview"></div>
+                    </div>
+                    <div class="mesa-premios">
+                        <p>Prêmios:</p>
+                        <ul>
+                            <li>R$ 75,00</li>
+                            <li>R$ 100,00</li>
+                            <li>R$ 150,00</li>
+                        </ul>
+                    </div>
+                    <button class="btn-jogar">Jogar</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção da Roleta -->
+        <section id="roleta-section" class="roleta-section hidden">
+            <div class="roleta-container">
+                <h2>Mesa R$ <span id="mesa-valor">5</span>,00</h2>
+                <div class="roleta-wrapper">
+                    <div class="roleta" id="roleta">
+                        <div class="setor setor-vazio" data-premio="0">Vazio</div>
+                        <div class="setor setor-premio setor-baixo" data-premio="10">R$ 10</div>
+                        <div class="setor setor-vazio" data-premio="0">Vazio</div>
+                        <div class="setor setor-premio setor-medio" data-premio="15">R$ 15</div>
+                        <div class="setor setor-vazio" data-premio="0">Vazio</div>
+                        <div class="setor setor-premio setor-alto" data-premio="20">R$ 20</div>
+                        <div class="setor setor-vazio" data-premio="0">Vazio</div>
+                        <div class="setor setor-vazio" data-premio="0">Vazio</div>
+                    </div>
+                    <div class="roleta-ponteiro"></div>
+                </div>
+                <div class="roleta-controls">
+                    <button class="btn-parar-roleta" id="btn-parar-roleta" disabled>Parar Roleta</button>
+                    <button class="btn-girar" id="btn-girar">Girar</button>
+                    <button class="btn-voltar" id="btn-voltar">Voltar às Mesas</button>
+                </div>
+                <div class="giros-restantes">
+                    <p>Giros restantes: <span id="giros-count">3</span></p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de Saque -->
+    <div class="modal-overlay" id="modal-saque">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Saque</h3>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-content">
+                <div class="saldo-info">
+                    <p>Saldo atual: <strong>R$ <span id="saldo-modal">0,00</span></strong></p>
+                </div>
+                <button class="btn-sacar-agora" id="btn-sacar-agora">Sacar Agora</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Depósito -->
+    <div class="modal-overlay" id="modal-deposito">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>⚠️ Primeiro Depósito Necessário</h3>
+                <button class="modal-close" id="modal-deposito-close">&times;</button>
+            </div>
+            <div class="modal-content">
+                <p>Só é possível sacar após realizar o primeiro depósito de R$40,00 para ativar sua conta.</p>
+                <button class="btn-depositar-agora" id="btn-depositar-agora">Depositar Agora</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Vitória -->
+    <div class="modal-overlay" id="modal-vitoria">
+        <div class="modal-container modal-vitoria">
+            <div class="confete"></div>
+            <div class="modal-content">
+                <h2>🎉 Parabéns!</h2>
+                <p>Você ganhou <strong>R$ <span id="premio-valor">0,00</span>!</strong></p>
+                <button class="btn-continuar" id="btn-continuar">Continuar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
