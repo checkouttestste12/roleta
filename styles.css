@@ -442,9 +442,21 @@ body {
     border-radius: 50%;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 0 40px rgba(255, 215, 0, 0.4);
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.4), 
+                inset 0 0 20px rgba(255, 215, 0, 0.2);
     border: 3px solid #ffd700;
     transition: transform 0.1s ease-out;
+}
+
+.roleta-premium.girando {
+    box-shadow: 0 0 60px rgba(255, 215, 0, 0.6), 
+                inset 0 0 30px rgba(255, 215, 0, 0.3);
+    animation: roletaGlow 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes roletaGlow {
+    0% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.4), inset 0 0 20px rgba(255, 215, 0, 0.2); }
+    100% { box-shadow: 0 0 80px rgba(255, 215, 0, 0.8), inset 0 0 40px rgba(255, 215, 0, 0.4); }
 }
 
 .setor {
@@ -620,9 +632,16 @@ body {
     border-radius: 6px;
 }
 
+/* Botões de Controle */
+.botoes-controle {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
 /* Botões */
 .btn-jogar {
-    width: 100%;
     padding: 1rem 2rem;
     border: none;
     border-radius: 12px;
@@ -638,37 +657,60 @@ body {
     gap: 0.5rem;
     text-transform: uppercase;
     letter-spacing: 1px;
+    min-width: 140px;
+}
+
+.btn-parar {
+    background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
+    color: #ffffff;
+    box-shadow: 0 8px 32px rgba(255, 71, 87, 0.3);
+    animation: pulseRed 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseRed {
+    0%, 100% { box-shadow: 0 8px 32px rgba(255, 71, 87, 0.3); }
+    50% { box-shadow: 0 12px 40px rgba(255, 71, 87, 0.6); }
 }
 
 .btn-giros-gratis {
     background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
     color: #0a0e27;
     box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3);
+    width: 100%;
 }
 
 .btn-bronze {
     background: linear-gradient(135deg, #cd7f32 0%, #b8860b 100%);
     color: #ffffff;
+    width: 100%;
 }
 
 .btn-prata {
     background: linear-gradient(135deg, #c0c0c0 0%, #a8a8a8 100%);
     color: #0a0e27;
+    width: 100%;
 }
 
 .btn-ouro {
     background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
     color: #0a0e27;
+    width: 100%;
 }
 
 .btn-diamante {
     background: linear-gradient(135deg, #b9f2ff 0%, #66d9ef 100%);
     color: #0a0e27;
+    width: 100%;
 }
 
 .btn-jogar:hover {
     transform: translateY(-2px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.btn-parar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(255, 71, 87, 0.5);
 }
 
 .btn-bg {
@@ -899,7 +941,7 @@ body {
     font-size: 1.2rem;
 }
 
-/* Modal de Vitória */
+/* Modal de Resultado */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -923,7 +965,7 @@ body {
     backdrop-filter: blur(10px);
 }
 
-.modal-container {
+.resultado-modal {
     background: linear-gradient(135deg, #1a1f3a 0%, #2d1b69 100%);
     border-radius: 24px;
     padding: 3rem;
@@ -976,22 +1018,66 @@ body {
     margin-bottom: 0.5rem;
 }
 
-.win-amount {
+.modal-content {
+    margin-bottom: 2rem;
+}
+
+.premio-display {
+    margin-bottom: 1.5rem;
+}
+
+.premio-valor {
     font-family: 'Orbitron', monospace;
     font-size: 3rem;
     font-weight: 900;
     color: #ffd700;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
 }
 
-.win-message {
-    font-size: 1.1rem;
+.premio-label {
+    font-size: 1rem;
     color: #cccccc;
-    margin-bottom: 2rem;
 }
 
-.btn-modal-action {
+.saldo-atualizado {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.saldo-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.saldo-label {
+    color: #cccccc;
+    font-weight: 500;
+}
+
+.saldo-valor {
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    color: #ffd700;
+    font-size: 1.2rem;
+}
+
+.giros-restantes {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: rgba(255, 215, 0, 0.1);
+    color: #ffd700;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.btn-continuar {
     background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
     color: #0a0e27;
     border: none;
@@ -1009,7 +1095,7 @@ body {
     box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3);
 }
 
-.btn-modal-action:hover {
+.btn-continuar:hover {
     transform: translateY(-2px);
     box-shadow: 0 12px 40px rgba(0, 255, 136, 0.4);
 }
@@ -1236,6 +1322,12 @@ body {
     .btn-jogar {
         padding: 0.75rem 1.5rem;
         font-size: 0.9rem;
+        min-width: 120px;
+    }
+    
+    .botoes-controle {
+        flex-direction: column;
+        gap: 0.75rem;
     }
     
     .giros-counter {
@@ -1256,7 +1348,7 @@ body {
     }
     
     .cadastro-container,
-    .modal-container {
+    .resultado-modal {
         padding: 2rem;
         max-width: 90vw;
     }
@@ -1285,12 +1377,8 @@ body {
         font-size: 1.5rem;
     }
     
-    .win-amount {
+    .premio-valor {
         font-size: 2.5rem;
-    }
-    
-    .win-message {
-        font-size: 1rem;
     }
     
     .cadastro-benefits {
@@ -1356,11 +1444,11 @@ body {
     }
     
     .cadastro-container,
-    .modal-container {
+    .resultado-modal {
         padding: 1.5rem;
     }
     
-    .win-amount {
+    .premio-valor {
         font-size: 2rem;
     }
 }
