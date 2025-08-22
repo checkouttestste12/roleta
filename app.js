@@ -5,7 +5,15 @@ let gameState = {
     girosUsados: 0,
     primeiroDeposito: false,
     roletaGirando: false,
-    segundoGiroCompleto: false
+    segundoGiroCompleto: false,
+    mesaAtual: null
+};
+
+const mesasConfig = {
+    5: { premios: [10, 15, 20] },
+    10: { premios: [20, 30, 40] },
+    15: { premios: [40, 60, 75] },
+    20: { premios: [75, 100, 150] }
 };
 
 const elements = {
@@ -18,10 +26,21 @@ const elements = {
     modalDeposito: document.getElementById("modal-deposito"),
     modalVitoria: document.getElementById("modal-vitoria"),
     roleta: document.getElementById("roleta"),
+    roletaMesa: document.getElementById("roleta-mesa"),
     btnGirar: document.getElementById("btn-girar"),
+    btnGirarMesa: document.getElementById("btn-girar-mesa"),
+    btnPararRoleta: document.getElementById("btn-parar-roleta"),
+    btnVoltar: document.getElementById("btn-voltar"),
     girosCount: document.getElementById("giros-count"),
     girosInfo: document.getElementById("giros-info"),
-    premioValor: document.getElementById("premio-valor")
+    premioValor: document.getElementById("premio-valor"),
+    girosTitle: document.getElementById("giros-title"),
+    girosSubtitle: document.getElementById("giros-subtitle"),
+    roletaGratisContainer: document.getElementById("roleta-gratis-container"),
+    girosGratisInfo: document.querySelector(".giros-gratis-info"),
+    roletaSection: document.getElementById("roleta-section"),
+    mesasSection: document.getElementById("mesas"),
+    mesaValor: document.getElementById("mesa-valor")
 };
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -34,23 +53,27 @@ function initializeGame() {
     const usuarioSalvo = localStorage.getItem("roletaUser");
     if (usuarioSalvo) {
         gameState = { ...gameState, ...JSON.parse(usuarioSalvo) };
-        // Se já tem usuário, mostrar informações dos giros
+        
+        // Se já tem usuário e ainda tem giros, mostrar informações dos giros
         if (gameState.girosGratis > 0) {
             elements.girosInfo.style.display = "block";
+        } else {
+            // Se não tem mais giros, mostrar estado "sem giros"
+            mostrarEstadoSemGiros();
         }
     }
     updateUI();
 }
 
 function setupEventListeners() {
-    // Botão Girar - principal funcionalidade
+    // Botão Girar da roleta grátis
     elements.btnGirar.addEventListener("click", function() {
         if (!gameState.usuario) {
             // Se não tem usuário, mostrar cadastro
             elements.cadastroOverlay.classList.remove("hidden");
         } else if (gameState.girosGratis > 0) {
             // Se tem usuário e giros disponíveis, girar
-            iniciarGiro();
+            iniciarGiroGratis();
         } else {
             // Se não tem mais giros
             mostrarNotificacao("Você não tem mais giros grátis!", "error");
@@ -62,6 +85,30 @@ function setupEventListeners() {
 
     // Botões de saque e depósito
     elements.btnSacar.addEventListener("click", abrirModalSaque);
+    
+    // Botões das mesas
+    document.querySelectorAll(".btn-jogar").forEach(btn => {
+        btn.addEventListener("click", function() {
+            const mesa = this.closest(".mesa-card");
+            const valor = parseInt(mesa.dataset.valor);
+            abrirMesa(valor);
+        });
+    });
+
+    // Botão girar da mesa
+    if (elements.btnGirarMesa) {
+        elements.btnGirarMesa.addEventListener("click", iniciarGiroMesa);
+    }
+
+    // Botão parar roleta da mesa
+    if (elements.btnPararRoleta) {
+        elements.btnPararRoleta.addEventListener("click", pararRoletaMesa);
+    }
+
+    // Botão voltar das mesas
+    if (elements.btnVoltar) {
+        elements.btnVoltar.addEventListener("click", voltarParaMesas);
+    }
     
     // Event listeners para modais
     setupModalListeners();
@@ -97,7 +144,7 @@ function handleCadastro(e) {
     }
 }
 
-function iniciarGiro() {
+function iniciarGiroGratis() {
     if (gameState.roletaGirando) return;
     if (gameState.girosGratis <= 0) {
         mostrarNotificacao("Você não tem mais giros grátis!", "error");
@@ -123,7 +170,7 @@ function iniciarGiro() {
     setTimeout(() => {
         clearInterval(intervaloRoleta);
         
-        const resultado = calcularResultado();
+        const resultado = calcularResultadoGratis();
         const rotacaoFinal = resultado.angulo;
         
         // Animação final
@@ -140,13 +187,20 @@ function iniciarGiro() {
             gameState.girosGratis--;
             gameState.roletaGirando = false;
             
+            // Se acabaram os giros, mostrar estado sem giros
+            if (gameState.girosGratis === 0) {
+                setTimeout(() => {
+                    mostrarEstadoSemGiros();
+                }, 2000);
+            }
+            
             updateUI();
             salvarEstado();
         }, 2000);
     }, 3000);
 }
 
-function calcularResultado() {
+function calcularResultadoGratis() {
     const setores = elements.roleta.querySelectorAll(".setor");
     let setorEscolhido;
     let premio = 0;
@@ -189,6 +243,141 @@ function calcularResultado() {
         premio: premio,
         angulo: anguloFinal
     };
+}
+
+function mostrarEstadoSemGiros() {
+    // Ocultar a roleta e controles
+    elements.roletaGratisContainer.style.display = "none";
+    
+    // Alterar o texto
+    elements.girosTitle.textContent = "Sem mais giros grátis";
+    elements.girosSubtitle.textContent = "Experimente nossas mesas com apostas abaixo!";
+    
+    // Adicionar classe CSS para estilo diferente
+    elements.girosGratisInfo.classList.add("sem-giros");
+}
+
+function abrirMesa(valor) {
+    gameState.mesaAtual = valor;
+    elements.mesaValor.textContent = valor;
+    
+    // Atualizar prêmios da roleta da mesa
+    atualizarRoletaPremios(valor);
+    
+    // Ocultar seção home e mostrar seção da roleta
+    document.getElementById("home").style.display = "none";
+    elements.mesasSection.style.display = "none";
+    elements.roletaSection.classList.remove("hidden");
+}
+
+function voltarParaMesas() {
+    // Mostrar seção home e ocultar seção da roleta
+    document.getElementById("home").style.display = "block";
+    elements.mesasSection.style.display = "block";
+    elements.roletaSection.classList.add("hidden");
+}
+
+function iniciarGiroMesa() {
+    if (gameState.roletaGirando) return;
+    
+    // Verificar se tem saldo suficiente
+    if (gameState.saldo < gameState.mesaAtual) {
+        mostrarNotificacao(`Saldo insuficiente! Você precisa de R$ ${gameState.mesaAtual},00`, "error");
+        return;
+    }
+
+    gameState.roletaGirando = true;
+    elements.btnGirarMesa.disabled = true;
+    elements.btnPararRoleta.disabled = false;
+
+    // Descontar valor da mesa do saldo
+    gameState.saldo -= gameState.mesaAtual;
+
+    let rotacao = 0;
+    const velocidade = 20;
+    gameState.intervaloRoletaMesa = setInterval(() => {
+        rotacao += velocidade;
+        elements.roletaMesa.style.transform = `rotate(${rotacao}deg)`;
+    }, 50);
+
+    setTimeout(() => {
+        if (gameState.roletaGirando) {
+            pararRoletaMesa();
+        }
+    }, 10000);
+}
+
+function pararRoletaMesa() {
+    if (!gameState.roletaGirando) return;
+
+    clearInterval(gameState.intervaloRoletaMesa);
+    gameState.roletaGirando = false;
+    elements.btnPararRoleta.disabled = true;
+
+    const resultado = calcularResultadoMesa();
+    const rotacaoFinal = resultado.angulo;
+    elements.roletaMesa.style.transition = "transform 2s cubic-bezier(0.25, 0.1, 0.25, 1)";
+    elements.roletaMesa.style.transform = `rotate(${rotacaoFinal}deg)`;
+
+    setTimeout(() => {
+        processarResultado(resultado);
+        elements.roletaMesa.style.transition = "";
+        elements.btnGirarMesa.disabled = false;
+        updateUI();
+        salvarEstado();
+    }, 2000);
+}
+
+function calcularResultadoMesa() {
+    const setores = elements.roletaMesa.querySelectorAll(".setor");
+    let setorEscolhido;
+    
+    const random = Math.random();
+    if (random < 0.3) { // 30% chance de ganhar
+        const setoresComPremio = Array.from(setores).filter(s => parseInt(s.dataset.premio) > 0);
+        setorEscolhido = setoresComPremio[Math.floor(Math.random() * setoresComPremio.length)];
+    } else {
+        const setoresVazios = Array.from(setores).filter(s => parseInt(s.dataset.premio) === 0);
+        setorEscolhido = setoresVazios[Math.floor(Math.random() * setoresVazios.length)];
+    }
+
+    const setorIndex = Array.from(setores).indexOf(setorEscolhido);
+    const anguloSetor = (setorIndex * 45) + 22.5;
+    const voltas = 5 + Math.random() * 3;
+    const anguloFinal = (voltas * 360) + anguloSetor;
+
+    return {
+        setor: setorEscolhido,
+        premio: parseInt(setorEscolhido.dataset.premio),
+        angulo: anguloFinal
+    };
+}
+
+function atualizarRoletaPremios(valorMesa) {
+    const setores = elements.roletaMesa.querySelectorAll(".setor");
+    const premios = mesasConfig[valorMesa].premios;
+    const posicoesPremios = [1, 3, 5];
+
+    setores.forEach((setor, index) => {
+        setor.classList.remove("setor-baixo", "setor-medio", "setor-alto", "setor-vazio");
+        if (posicoesPremios.includes(index)) {
+            const premioIndex = posicoesPremios.indexOf(index);
+            const premio = premios[premioIndex];
+            setor.dataset.premio = premio;
+            setor.textContent = `R$ ${premio}`;
+            if (premio <= premios[0]) {
+                setor.classList.add("setor-baixo");
+            } else if (premio <= premios[1]) {
+                setor.classList.add("setor-medio");
+            } else {
+                setor.classList.add("setor-alto");
+            }
+        } else {
+            setor.dataset.premio = "0";
+            setor.textContent = "Vazio";
+            setor.classList.add("setor-vazio");
+        }
+    });
 }
 
 function processarResultado(resultado) {
