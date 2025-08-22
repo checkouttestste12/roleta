@@ -4,7 +4,10 @@ let gameState = {
     saldo: 0,
     girosGratis: 0,
     girosUsados: 0,
-    primeiroDeposito: false
+    primeiroDeposito: false,
+    roletaGirando: false,
+    timeoutGiro: null,
+    anguloAtual: 0
 };
 
 // Elementos DOM
@@ -12,6 +15,7 @@ const elements = {
     cadastroOverlay: document.getElementById('cadastro-overlay'),
     cadastroForm: document.getElementById('cadastro-form'),
     btnGirar: document.getElementById('btn-girar'),
+    btnParar: document.getElementById('btn-parar'),
     roleta: document.getElementById('roleta'),
     saldoAtual: document.getElementById('saldo-atual'),
     girosCount: document.getElementById('giros-count'),
@@ -21,9 +25,16 @@ const elements = {
     roletaContainer: document.getElementById('roleta-gratis-container'),
     girosGratisInfo: document.getElementById('giros-gratis-info'),
     girosPremiosInfo: document.getElementById('giros-premios-info'),
-    winModal: document.getElementById('win-modal'),
-    winAmount: document.getElementById('win-amount'),
-    btnContinue: document.getElementById('btn-continue'),
+    resultadoModal: document.getElementById('resultado-modal'),
+    resultadoTitulo: document.getElementById('resultado-titulo'),
+    resultadoDescricao: document.getElementById('resultado-descricao'),
+    resultadoIcon: document.getElementById('resultado-icon'),
+    premioValor: document.getElementById('premio-valor'),
+    premioDisplay: document.getElementById('premio-display'),
+    novoSaldo: document.getElementById('novo-saldo'),
+    girosRestantesModal: document.getElementById('giros-restantes-modal'),
+    girosRestantesCount: document.getElementById('giros-restantes-count'),
+    btnContinuar: document.getElementById('btn-continuar'),
     toastContainer: document.getElementById('toast-container')
 };
 
@@ -40,9 +51,23 @@ const roletaConfig = {
         { premio: 0, texto: 'Vazio', cor: '#2a2a2a' }
     ],
     anguloSetor: 45, // 360 / 8 setores
-    duracaoGiro: 3000,
-    voltasMinimas: 5
+    velocidadeInicial: 20, // graus por frame
+    desaceleracao: 0.98, // fator de desaceleração
+    velocidadeMinima: 0.5 // velocidade mínima antes de parar
 };
+
+// Sons do jogo
+const sons = {
+    giro: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT'),
+    parada: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT'),
+    vitoria: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT'),
+    derrota: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT')
+};
+
+// Configurar volume dos sons
+Object.values(sons).forEach(som => {
+    som.volume = 0.3;
+});
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', function() {
@@ -57,26 +82,31 @@ document.addEventListener('DOMContentLoaded', function() {
 function carregarEstadoJogo() {
     const estadoSalvo = localStorage.getItem('roletaUser');
     if (estadoSalvo) {
-        gameState = JSON.parse(estadoSalvo);
+        gameState = { ...gameState, ...JSON.parse(estadoSalvo) };
         console.log('Estado carregado:', gameState);
     }
 }
 
 // Salvar estado do jogo no localStorage
 function salvarEstadoJogo() {
-    localStorage.setItem('roletaUser', JSON.stringify(gameState));
+    const estadoParaSalvar = { ...gameState };
+    delete estadoParaSalvar.roletaGirando;
+    delete estadoParaSalvar.timeoutGiro;
+    delete estadoParaSalvar.anguloAtual;
+    localStorage.setItem('roletaUser', JSON.stringify(estadoParaSalvar));
 }
 
 // Inicializar event listeners
 function inicializarEventListeners() {
-    // Botão girar
+    // Botões de controle da roleta
     elements.btnGirar.addEventListener('click', handleGirarClick);
+    elements.btnParar.addEventListener('click', handlePararClick);
     
     // Formulário de cadastro
     elements.cadastroForm.addEventListener('submit', handleCadastro);
     
-    // Botão continuar do modal de vitória
-    elements.btnContinue.addEventListener('click', fecharModalVitoria);
+    // Botão continuar do modal de resultado
+    elements.btnContinuar.addEventListener('click', fecharModalResultado);
     
     // Fechar modal clicando no backdrop
     elements.cadastroOverlay.addEventListener('click', function(e) {
@@ -85,9 +115,9 @@ function inicializarEventListeners() {
         }
     });
     
-    elements.winModal.addEventListener('click', function(e) {
-        if (e.target === elements.winModal) {
-            fecharModalVitoria();
+    elements.resultadoModal.addEventListener('click', function(e) {
+        if (e.target === elements.resultadoModal) {
+            fecharModalResultado();
         }
     });
     
@@ -105,6 +135,8 @@ function inicializarEventListeners() {
 
 // Handle click no botão girar
 function handleGirarClick() {
+    if (gameState.roletaGirando) return;
+    
     if (!gameState.usuario) {
         // Usuário não cadastrado, mostrar modal de cadastro
         mostrarModalCadastro();
@@ -115,6 +147,13 @@ function handleGirarClick() {
         // Sem giros grátis
         mostrarToast('Você não tem mais giros grátis disponíveis!', 'warning');
     }
+}
+
+// Handle click no botão parar
+function handlePararClick() {
+    if (!gameState.roletaGirando) return;
+    
+    pararRoleta();
 }
 
 // Handle cadastro
@@ -159,14 +198,57 @@ function fecharModalCadastro() {
 
 // Girar roleta
 function girarRoleta() {
-    if (gameState.girosGratis <= 0) {
-        mostrarToast('Você não tem mais giros grátis!', 'warning');
+    if (gameState.girosGratis <= 0 || gameState.roletaGirando) {
         return;
     }
     
-    // Desabilitar botão durante o giro
-    elements.btnGirar.disabled = true;
-    elements.btnGirar.querySelector('.btn-text').textContent = 'GIRANDO...';
+    // Marcar como girando
+    gameState.roletaGirando = true;
+    
+    // Atualizar interface dos botões
+    elements.btnGirar.classList.add('hidden');
+    elements.btnParar.classList.remove('hidden');
+    
+    // Tocar som de giro
+    sons.giro.currentTime = 0;
+    sons.giro.play().catch(() => {});
+    
+    // Iniciar animação de giro contínuo
+    iniciarGiroContinuo();
+    
+    mostrarToast('Clique em PARAR quando quiser parar a roleta!', 'info');
+}
+
+// Iniciar giro contínuo
+function iniciarGiroContinuo() {
+    let velocidade = roletaConfig.velocidadeInicial;
+    
+    function animar() {
+        if (!gameState.roletaGirando) return;
+        
+        gameState.anguloAtual += velocidade;
+        elements.roleta.style.transform = `rotate(${gameState.anguloAtual}deg)`;
+        
+        requestAnimationFrame(animar);
+    }
+    
+    animar();
+}
+
+// Parar roleta
+function pararRoleta() {
+    if (!gameState.roletaGirando) return;
+    
+    // Marcar como não girando
+    gameState.roletaGirando = false;
+    
+    // Parar som de giro
+    sons.giro.pause();
+    sons.giro.currentTime = 0;
+    
+    // Tocar som de parada
+    sons.parada.currentTime = 0;
+    sons.parada.play().catch(() => {});
     
     // Determinar prêmio baseado no número do giro
     let premioGarantido = null;
@@ -175,21 +257,15 @@ function girarRoleta() {
         premioGarantido = 75;
     }
     
-    // Calcular rotação
-    const { anguloFinal, premioGanho } = calcularRotacao(premioGarantido);
+    // Calcular posição final
+    const { anguloFinal, premioGanho } = calcularPosicaoFinal(premioGarantido);
     
-    // Aplicar rotação
-    elements.roleta.style.transition = `transform ${roletaConfig.duracaoGiro}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
-    elements.roleta.style.transform = `rotate(${anguloFinal}deg)`;
-    
-    // Após o giro
-    setTimeout(() => {
-        finalizarGiro(premioGanho);
-    }, roletaConfig.duracaoGiro);
+    // Aplicar animação de desaceleração até a posição final
+    aplicarDesaceleracao(anguloFinal, premioGanho);
 }
 
-// Calcular rotação da roleta
-function calcularRotacao(premioGarantido = null) {
+// Calcular posição final da roleta
+function calcularPosicaoFinal(premioGarantido = null) {
     let setorEscolhido;
     
     if (premioGarantido !== null) {
@@ -199,33 +275,49 @@ function calcularRotacao(premioGarantido = null) {
             setorEscolhido = Math.floor(Math.random() * roletaConfig.setores.length);
         }
     } else {
-        // Escolher setor aleatório com probabilidades
-        const random = Math.random();
-        if (random < 0.1) {
-            // 10% chance de ganhar R$ 75
-            setorEscolhido = 5;
-        } else if (random < 0.25) {
-            // 15% chance de ganhar R$ 50
-            setorEscolhido = 3;
-        } else if (random < 0.5) {
-            // 25% chance de ganhar R$ 25
-            setorEscolhido = 1;
-        } else {
-            // 50% chance de não ganhar nada
-            const setoresVazios = [0, 2, 4, 6, 7];
-            setorEscolhido = setoresVazios[Math.floor(Math.random() * setoresVazios.length)];
-        }
+        // Para todas as outras rodadas (exceto a segunda), sempre perder
+        const setoresVazios = [0, 2, 4, 6, 7];
+        setorEscolhido = setoresVazios[Math.floor(Math.random() * setoresVazios.length)];
     }
     
     // Calcular ângulo final
     const anguloSetor = setorEscolhido * roletaConfig.anguloSetor;
     const anguloAleatorio = Math.random() * roletaConfig.anguloSetor;
-    const voltasCompletas = roletaConfig.voltasMinimas * 360;
-    const anguloFinal = voltasCompletas + anguloSetor + anguloAleatorio;
+    const voltasAdicionais = Math.floor(Math.random() * 3 + 2) * 360; // 2-4 voltas adicionais
+    const anguloFinal = gameState.anguloAtual + voltasAdicionais + anguloSetor + anguloAleatorio;
     
     const premioGanho = roletaConfig.setores[setorEscolhido].premio;
     
     return { anguloFinal, premioGanho };
+}
+
+// Aplicar desaceleração até a posição final
+function aplicarDesaceleracao(anguloFinal, premioGanho) {
+    const anguloInicial = gameState.anguloAtual;
+    const distanciaTotal = anguloFinal - anguloInicial;
+    const duracaoDesaceleracao = 2000; // 2 segundos
+    const tempoInicio = Date.now();
+    
+    function animar() {
+        const tempoDecorrido = Date.now() - tempoInicio;
+        const progresso = Math.min(tempoDecorrido / duracaoDesaceleracao, 1);
+        
+        // Função de easing para desaceleração suave
+        const progressoSuave = 1 - Math.pow(1 - progresso, 3);
+        
+        const anguloAtual = anguloInicial + (distanciaTotal * progressoSuave);
+        elements.roleta.style.transform = `rotate(${anguloAtual}deg)`;
+        
+        if (progresso < 1) {
+            requestAnimationFrame(animar);
+        } else {
+            // Finalizar giro
+            gameState.anguloAtual = anguloFinal;
+            finalizarGiro(premioGanho);
+        }
+    }
+    
+    animar();
 }
 
 // Finalizar giro
@@ -237,35 +329,67 @@ function finalizarGiro(premioGanho) {
     
     salvarEstadoJogo();
     
-    // Reabilitar botão
-    elements.btnGirar.disabled = false;
-    elements.btnGirar.querySelector('.btn-text').textContent = 'GIRAR AGORA';
+    // Atualizar interface dos botões
+    elements.btnParar.classList.add('hidden');
+    elements.btnGirar.classList.remove('hidden');
     
-    // Mostrar resultado
-    if (premioGanho > 0) {
-        mostrarModalVitoria(premioGanho);
-        mostrarToast(`🎉 Parabéns! Você ganhou R$ ${premioGanho.toFixed(2).replace('.', ',')}!`, 'success');
-    } else {
-        mostrarToast('Que pena! Tente novamente!', 'info');
-    }
+    // Mostrar resultado após um pequeno delay
+    setTimeout(() => {
+        mostrarModalResultado(premioGanho);
+    }, 500);
     
     // Atualizar interface
     atualizarInterface();
 }
 
-// Mostrar modal de vitória
-function mostrarModalVitoria(premio) {
-    elements.winAmount.textContent = `R$ ${premio.toFixed(2).replace('.', ',')}`;
-    elements.winModal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+// Mostrar modal de resultado
+function mostrarModalResultado(premio) {
+    if (premio > 0) {
+        // Vitória
+        elements.resultadoTitulo.textContent = 'Parabéns!';
+        elements.resultadoDescricao.textContent = 'Você ganhou um prêmio!';
+        elements.resultadoIcon.innerHTML = '<i class="fas fa-trophy"></i>';
+        elements.resultadoIcon.style.color = '#ffd700';
+        elements.premioValor.textContent = `R$ ${premio.toFixed(2).replace('.', ',')}`;
+        elements.premioDisplay.style.display = 'block';
+        
+        // Tocar som de vitória
+        sons.vitoria.currentTime = 0;
+        sons.vitoria.play().catch(() => {});
+        
+        // Criar efeito de confetes
+        criarConfetes();
+    } else {
+        // Derrota
+        elements.resultadoTitulo.textContent = 'Que pena!';
+        elements.resultadoDescricao.textContent = 'Não foi dessa vez, tente novamente!';
+        elements.resultadoIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
+        elements.resultadoIcon.style.color = '#ff6b6b';
+        elements.premioDisplay.style.display = 'none';
+        
+        // Tocar som de derrota
+        sons.derrota.currentTime = 0;
+        sons.derrota.play().catch(() => {});
+    }
     
-    // Criar efeito de confetes
-    criarConfetes();
+    // Atualizar informações do modal
+    elements.novoSaldo.textContent = gameState.saldo.toFixed(2).replace('.', ',');
+    elements.girosRestantesCount.textContent = gameState.girosGratis;
+    
+    if (gameState.girosGratis > 0) {
+        elements.girosRestantesModal.style.display = 'flex';
+    } else {
+        elements.girosRestantesModal.style.display = 'none';
+    }
+    
+    // Mostrar modal
+    elements.resultadoModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
 }
 
-// Fechar modal de vitória
-function fecharModalVitoria() {
-    elements.winModal.classList.add('hidden');
+// Fechar modal de resultado
+function fecharModalResultado() {
+    elements.resultadoModal.classList.add('hidden');
     document.body.style.overflow = 'auto';
 }
 
@@ -292,6 +416,7 @@ function atualizarInterface() {
         elements.roletaContainer.style.display = 'none';
         elements.girosPremiosInfo.style.display = 'none';
         elements.btnGirar.style.display = 'none';
+        elements.btnParar.style.display = 'none';
         
         // Alterar para estado "sem giros grátis"
         elements.girosTitle.textContent = 'Sem mais giros grátis';
@@ -309,6 +434,7 @@ function atualizarInterface() {
         elements.roletaContainer.style.display = 'block';
         elements.girosPremiosInfo.style.display = 'block';
         elements.btnGirar.style.display = 'block';
+        elements.btnParar.style.display = 'none';
         
         // Manter título e subtítulo originais
         elements.girosTitle.textContent = '3 Giros Grátis';
@@ -351,13 +477,34 @@ function mostrarToast(mensagem, tipo = 'info') {
             toast.style.color = '#ffffff';
     }
     
+    // Estilo do toast
+    toast.style.position = 'fixed';
+    toast.style.top = '20px';
+    toast.style.right = '20px';
+    toast.style.padding = '1rem 1.5rem';
+    toast.style.borderRadius = '12px';
+    toast.style.fontWeight = '600';
+    toast.style.fontSize = '0.9rem';
+    toast.style.zIndex = '10000';
+    toast.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
+    toast.style.transform = 'translateX(100%)';
+    toast.style.transition = 'transform 0.3s ease';
+    
     elements.toastContainer.appendChild(toast);
+    
+    // Animar entrada
+    setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+    }, 100);
     
     // Remover após 4 segundos
     setTimeout(() => {
-        if (toast.parentNode) {
-            toast.parentNode.removeChild(toast);
-        }
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
     }, 4000);
 }
 
@@ -381,6 +528,7 @@ function criarConfetes() {
         confete.style.top = '-10px';
         confete.style.borderRadius = '50%';
         confete.style.animation = `confettiFall ${2 + Math.random() * 3}s linear forwards`;
+        confete.style.zIndex = '9999';
         
         container.appendChild(confete);
     }
@@ -454,7 +602,10 @@ function resetarJogo() {
         saldo: 0,
         girosGratis: 0,
         girosUsados: 0,
-        primeiroDeposito: false
+        primeiroDeposito: false,
+        roletaGirando: false,
+        timeoutGiro: null,
+        anguloAtual: 0
     };
     localStorage.removeItem('roletaUser');
     atualizarInterface();
