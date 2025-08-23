@@ -7,9 +7,7 @@ let gameState = {
     primeiroDeposito: false,
     roletaGirando: false,
     timeoutGiro: null,
-    anguloAtual: 0,
-    animacaoId: null,
-    velocidadeAtual: 0
+    anguloAtual: 0
 };
 
 // Elementos DOM
@@ -40,58 +38,47 @@ const elements = {
     toastContainer: document.getElementById('toast-container')
 };
 
-// Configurações da roleta aprimoradas
+// Configurações da roleta
 const roletaConfig = {
     setores: [
-        { premio: 0, texto: '', cor: 'linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%)', angulo: 0 },
-        { premio: 25, texto: 'R$ 25', cor: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)', angulo: 45 },
-        { premio: 0, texto: '', cor: 'linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%)', angulo: 90 },
-        { premio: 50, texto: 'R$ 50', cor: 'linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%)', angulo: 135 },
-        { premio: 0, texto: '', cor: 'linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%)', angulo: 180 },
-        { premio: 75, texto: 'R$ 75', cor: 'linear-gradient(135deg, #4ecdc4 0%, #26a69a 100%)', angulo: 225 },
-        { premio: 0, texto: '', cor: 'linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%)', angulo: 270 },
-        { premio: 0, texto: '', cor: 'linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%)', angulo: 315 }
+        { premio: 0, texto: 'Vazio', cor: '#2a2a2a' },
+        { premio: 25, texto: 'R$ 25', cor: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' },
+        { premio: 0, texto: 'Vazio', cor: '#2a2a2a' },
+        { premio: 50, texto: 'R$ 50', cor: 'linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%)' },
+        { premio: 0, texto: 'Vazio', cor: '#2a2a2a' },
+        { premio: 75, texto: 'R$ 75', cor: 'linear-gradient(135deg, #4ecdc4 0%, #26a69a 100%)' },
+        { premio: 0, texto: 'Vazio', cor: '#2a2a2a' },
+        { premio: 0, texto: 'Vazio', cor: '#2a2a2a' }
     ],
     anguloSetor: 45, // 360 / 8 setores
-    velocidadeMinima: 2,
-    velocidadeMaxima: 25,
-    desaceleracaoSuave: 0.985,
-    tempoMinimoGiro: 3000, // 3 segundos mínimo
-    tempoMaximoGiro: 8000 // 8 segundos máximo
+    velocidadeInicial: 20, // graus por frame
+    desaceleracao: 0.98, // fator de desaceleração
+    velocidadeMinima: 0.5 // velocidade mínima antes de parar
 };
 
-// Sons do jogo aprimorados
+// Sons do jogo
 const sons = {
-    giro: createAudioContext(),
-    parada: createAudioContext(),
-    vitoria: createAudioContext(),
-    derrota: createAudioContext(),
-    tick: createAudioContext()
+    giro: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT'),
+    parada: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT'),
+    vitoria: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT'),
+    derrota: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT')
 };
 
-// Criar contexto de áudio para sons mais realistas
-function createAudioContext() {
-    return {
-        play: () => {
-            // Placeholder para sons - em produção, usar arquivos de áudio reais
-            console.log('Som reproduzido');
-        },
-        pause: () => {},
-        currentTime: 0,
-        volume: 0.3
-    };
-}
+// Configurar volume dos sons
+Object.values(sons).forEach(som => {
+    som.volume = 0.3;
+});
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('App iniciado - Versão Aprimorada');
+    console.log('App iniciado');
     
+    // Garantir que os elementos existam antes de continuar
     setTimeout(() => {
         carregarEstadoJogo();
         inicializarEventListeners();
         atualizarInterface();
         criarParticulas();
-        inicializarEfeitosVisuais();
         
         // Garantir estado inicial correto dos botões
         if (elements.btnGirar && elements.btnParar) {
@@ -117,13 +104,12 @@ function salvarEstadoJogo() {
     delete estadoParaSalvar.roletaGirando;
     delete estadoParaSalvar.timeoutGiro;
     delete estadoParaSalvar.anguloAtual;
-    delete estadoParaSalvar.animacaoId;
-    delete estadoParaSalvar.velocidadeAtual;
     localStorage.setItem('roletaUser', JSON.stringify(estadoParaSalvar));
 }
 
 // Inicializar event listeners
 function inicializarEventListeners() {
+    // Verificar se todos os elementos existem antes de adicionar event listeners
     if (!elements.btnGirar || !elements.btnParar) {
         console.error('Elementos de botão não encontrados');
         return;
@@ -180,10 +166,13 @@ function handleGirarClick() {
     if (gameState.roletaGirando) return;
     
     if (!gameState.usuario) {
+        // Usuário não cadastrado, mostrar modal de cadastro
         mostrarModalCadastro();
     } else if (gameState.girosGratis > 0) {
-        girarRoletaAprimorada();
+        // Usuário tem giros grátis disponíveis
+        girarRoleta();
     } else {
+        // Sem giros grátis
         mostrarToast('Você não tem mais giros grátis disponíveis!', 'warning');
     }
 }
@@ -191,7 +180,8 @@ function handleGirarClick() {
 // Handle click no botão parar
 function handlePararClick() {
     if (!gameState.roletaGirando) return;
-    pararRoletaAprimorada();
+    
+    pararRoleta();
 }
 
 // Handle cadastro
@@ -234,166 +224,96 @@ function fecharModalCadastro() {
     document.body.style.overflow = 'auto';
 }
 
-// FUNÇÃO PRINCIPAL APRIMORADA PARA GIRAR A ROLETA
-function girarRoletaAprimorada() {
+// Função principal para girar a roleta
+function girarRoleta() {
     if (gameState.girosGratis <= 0 || gameState.roletaGirando) {
         return;
     }
     
-    console.log('Iniciando giro aprimorado da roleta');
+    console.log('Iniciando giro da roleta');
     
     // Marcar como girando
     gameState.roletaGirando = true;
     
-    // Atualizar interface dos botões
-    trocarBotoes(true);
+    // Atualizar interface dos botões - FORÇAR a troca
+    if (elements.btnGirar && elements.btnParar) {
+        elements.btnGirar.style.display = 'none';
+        elements.btnGirar.classList.add('hidden');
+        
+        elements.btnParar.style.display = 'flex';
+        elements.btnParar.classList.remove('hidden');
+        
+        console.log('Botões trocados: GIRAR oculto, PARAR visível');
+    } else {
+        console.error('Elementos de botão não encontrados!');
+    }
     
     // Adicionar classes para animação dinâmica
-    adicionarClassesGiro();
+    const roletaContainer = document.getElementById('roleta-gratis-container');
+    const roletaWrapper = document.querySelector('.roleta-premium-wrapper');
+    const premiosInfo = document.getElementById('giros-premios-info');
+    
+    if (roletaContainer) roletaContainer.classList.add('girando');
+    if (roletaWrapper) roletaWrapper.classList.add('girando');
+    if (premiosInfo) premiosInfo.classList.add('hidden');
     
     // Tocar som de giro
-    sons.giro.play();
+    sons.giro.currentTime = 0;
+    sons.giro.play().catch(() => {});
     
-    // Iniciar animação de giro contínuo aprimorada
-    iniciarGiroContinuoAprimorado();
+    // Iniciar animação de giro contínuo
+    iniciarGiroContinuo();
     
     mostrarToast('Clique em PARAR quando quiser parar a roleta!', 'info');
 }
 
-// Trocar botões com animação suave
-function trocarBotoes(girando) {
-    if (elements.btnGirar && elements.btnParar) {
-        if (girando) {
-            elements.btnGirar.style.opacity = '0';
-            elements.btnGirar.style.transform = 'scale(0.8)';
-            
-            setTimeout(() => {
-                elements.btnGirar.classList.add('hidden');
-                elements.btnParar.classList.remove('hidden');
-                elements.btnParar.style.opacity = '0';
-                elements.btnParar.style.transform = 'scale(0.8)';
-                
-                setTimeout(() => {
-                    elements.btnParar.style.opacity = '1';
-                    elements.btnParar.style.transform = 'scale(1)';
-                }, 50);
-            }, 200);
-        } else {
-            elements.btnParar.style.opacity = '0';
-            elements.btnParar.style.transform = 'scale(0.8)';
-            
-            setTimeout(() => {
-                elements.btnParar.classList.add('hidden');
-                elements.btnGirar.classList.remove('hidden');
-                elements.btnGirar.style.opacity = '0';
-                elements.btnGirar.style.transform = 'scale(0.8)';
-                
-                setTimeout(() => {
-                    elements.btnGirar.style.opacity = '1';
-                    elements.btnGirar.style.transform = 'scale(1)';
-                }, 50);
-            }, 200);
-        }
-    }
-}
-
-// Adicionar classes de giro com transições suaves
-function adicionarClassesGiro() {
-    const roletaContainer = document.querySelector('.mesa-roleta-display-centralizada');
-    const roletaWrapper = document.querySelector('.roleta-premium-wrapper-centralizada');
-    const premiosInfo = document.getElementById('giros-premios-info');
-    
-    if (roletaContainer) {
-        roletaContainer.classList.add('girando');
-    }
-    if (roletaWrapper) {
-        roletaWrapper.classList.add('girando');
-    }
-    if (premiosInfo) {
-        premiosInfo.classList.add('hidden');
-    }
-}
-
-// Remover classes de giro
-function removerClassesGiro() {
-    const roletaContainer = document.querySelector('.mesa-roleta-display-centralizada');
-    const roletaWrapper = document.querySelector('.roleta-premium-wrapper-centralizada');
-    const premiosInfo = document.getElementById('giros-premios-info');
-    
-    if (roletaContainer) {
-        roletaContainer.classList.remove('girando');
-    }
-    if (roletaWrapper) {
-        roletaWrapper.classList.remove('girando');
-    }
-    if (premiosInfo) {
-        premiosInfo.classList.remove('hidden');
-    }
-}
-
-// GIRO CONTÍNUO APRIMORADO COM FÍSICA REALISTA
-function iniciarGiroContinuoAprimorado() {
-    // Velocidade inicial aleatória mais realista
-    gameState.velocidadeAtual = Math.random() * 8 + 12; // 12-20 graus por frame
-    let aceleracao = Math.random() * 1.5 + 0.8; // Aceleração inicial
-    let tempoAceleracao = Math.random() * 1500 + 800; // 0.8-2.3s de aceleração
+// Iniciar giro contínuo
+function iniciarGiroContinuo() {
+    let velocidade = Math.random() * 15 + 10; // Velocidade inicial aleatória entre 10-25
+    let aceleracao = Math.random() * 2 + 1; // Aceleração inicial
+    let tempoAceleracao = Math.random() * 1000 + 500; // Tempo de aceleração (0.5-1.5s)
     let tempoInicio = Date.now();
-    let ultimoTick = 0;
     
     // Adicionar classe de giro à roleta
     elements.roleta.classList.add('girando');
     
-    function animarGiro() {
+    function animar() {
         if (!gameState.roletaGirando) return;
         
         const tempoDecorrido = Date.now() - tempoInicio;
         
         // Fase de aceleração inicial
         if (tempoDecorrido < tempoAceleracao) {
-            gameState.velocidadeAtual += aceleracao * 0.08;
-            gameState.velocidadeAtual = Math.min(gameState.velocidadeAtual, roletaConfig.velocidadeMaxima);
+            velocidade += aceleracao * 0.1;
+            velocidade = Math.min(velocidade, 30); // Velocidade máxima
         } else {
-            // Fase de velocidade constante com pequenas variações naturais
-            const variacao = (Math.random() - 0.5) * 0.3;
-            gameState.velocidadeAtual += variacao;
-            gameState.velocidadeAtual = Math.max(
-                roletaConfig.velocidadeMinima + 8, 
-                Math.min(gameState.velocidadeAtual, roletaConfig.velocidadeMaxima)
-            );
+            // Fase de velocidade constante com pequenas variações
+            velocidade += (Math.random() - 0.5) * 0.5;
+            velocidade = Math.max(8, Math.min(velocidade, 25));
         }
         
-        // Atualizar ângulo
-        gameState.anguloAtual += gameState.velocidadeAtual;
+        gameState.anguloAtual += velocidade;
         gameState.anguloAtual %= 360;
         
-        // Aplicar rotação com efeito suave
         elements.roleta.style.transform = `rotate(${gameState.anguloAtual}deg)`;
         
-        // Efeito sonoro de tick baseado na velocidade
-        const agora = Date.now();
-        const intervaloTick = Math.max(50, 200 - (gameState.velocidadeAtual * 5));
-        if (agora - ultimoTick > intervaloTick) {
-            sons.tick.play();
-            ultimoTick = agora;
+        // Efeito sonoro variável baseado na velocidade
+        if (Math.random() < 0.1) { // 10% de chance por frame
+            const pitch = 0.8 + (velocidade / 30) * 0.4; // Pitch varia com a velocidade
+            sons.giro.playbackRate = pitch;
         }
         
-        // Efeito visual de brilho baseado na velocidade
-        const intensidadeBrilho = Math.min(1, gameState.velocidadeAtual / roletaConfig.velocidadeMaxima);
-        elements.roleta.style.filter = `brightness(${1 + intensidadeBrilho * 0.3}) saturate(${1 + intensidadeBrilho * 0.2})`;
-        
-        gameState.animacaoId = requestAnimationFrame(animarGiro);
+        gameState.animacaoId = requestAnimationFrame(animar);
     }
     
-    animarGiro();
+    animar();
 }
 
-// PARAR ROLETA APRIMORADA
-function pararRoletaAprimorada() {
+// Parar roleta
+function pararRoleta() {
     if (!gameState.roletaGirando) return;
     
-    console.log('Parando roleta aprimorada');
-    
-    // Marcar como não girando para parar a animação contínua
+    // Marcar como não girando para parar a animação
     gameState.roletaGirando = false;
     
     // Cancelar animação se existir
@@ -402,21 +322,26 @@ function pararRoletaAprimorada() {
         gameState.animacaoId = null;
     }
     
-    // Determinar prêmio baseado no número de giros (lógica de negócio)
+    // Determinar prêmio baseado no número de giros
     let premioGarantido = null;
-    if (gameState.girosUsados === 1) { // Segunda rodada
+    if (gameState.girosUsados === 1) { // Segunda rodada (índice 1 = segunda rodada)
         premioGarantido = 75; // Garantir R$ 75,00 na segunda rodada
     }
     
-    // Calcular posição final com física realista
-    const { anguloFinal, premioGanho } = calcularPosicaoFinalAprimorada(premioGarantido);
+    // Calcular posição final
+    const { anguloFinal, premioGanho } = calcularPosicaoFinal(premioGarantido);
     
-    // Aplicar desaceleração realista até a posição final
-    aplicarDesaceleracaoAprimorada(anguloFinal, premioGanho);
+    // Aplicar animação de desaceleração até a posição final
+    aplicarDesaceleracao(anguloFinal, premioGanho);
 }
 
-// CALCULAR POSIÇÃO FINAL APRIMORADA
-function calcularPosicaoFinalAprimorada(premioGarantido = null) {
+// Handle click no botão parar
+function handlePararClick() {
+    pararRoleta();
+}
+
+// Calcular posição final da roleta
+function calcularPosicaoFinal(premioGarantido = null) {
     let setorEscolhido;
     
     if (premioGarantido !== null) {
@@ -426,128 +351,101 @@ function calcularPosicaoFinalAprimorada(premioGarantido = null) {
             setorEscolhido = Math.floor(Math.random() * roletaConfig.setores.length);
         }
     } else {
-        // Para outras rodadas, usar probabilidade realista
-        const setoresVazios = [0, 2, 4, 6, 7]; // Índices dos setores vazios
-        const setoresPremio = [1, 3, 5]; // Índices dos setores com prêmio
-        
-        // 70% chance de cair em setor vazio, 30% chance de prêmio
-        if (Math.random() < 0.7) {
-            setorEscolhido = setoresVazios[Math.floor(Math.random() * setoresVazios.length)];
-        } else {
-            setorEscolhido = setoresPremio[Math.floor(Math.random() * setoresPremio.length)];
-        }
+        // Para todas as outras rodadas (exceto a segunda), sempre perder
+        const setoresVazios = [0, 2, 4, 6, 7];
+        setorEscolhido = setoresVazios[Math.floor(Math.random() * setoresVazios.length)];
     }
     
-    // Calcular ângulo final com precisão
+    // Calcular ângulo final
     const anguloSetor = setorEscolhido * roletaConfig.anguloSetor;
-    const anguloAleatorioNoSetor = Math.random() * roletaConfig.anguloSetor;
-    const voltasAdicionais = Math.floor(Math.random() * 4 + 3) * 360; // 3-6 voltas adicionais
-    
-    // Ajustar para que o ponteiro aponte para o centro do setor
-    const ajustePonteiro = roletaConfig.anguloSetor / 2;
-    const anguloFinal = gameState.anguloAtual + voltasAdicionais + anguloSetor + anguloAleatorioNoSetor + ajustePonteiro;
+    const anguloAleatorio = Math.random() * roletaConfig.anguloSetor;
+    const voltasAdicionais = Math.floor(Math.random() * 3 + 2) * 360; // 2-4 voltas adicionais
+    const anguloFinal = gameState.anguloAtual + voltasAdicionais + anguloSetor + anguloAleatorio;
     
     const premioGanho = roletaConfig.setores[setorEscolhido].premio;
-    
-    console.log(`Setor escolhido: ${setorEscolhido}, Prêmio: ${premioGanho}, Ângulo final: ${anguloFinal}`);
     
     return { anguloFinal, premioGanho };
 }
 
-// APLICAR DESACELERAÇÃO APRIMORADA COM FÍSICA REALISTA
-function aplicarDesaceleracaoAprimorada(anguloFinal, premioGanho) {
+// Aplicar desaceleração até a posição final
+function aplicarDesaceleracao(anguloFinal, premioGanho) {
     // Parar som de giro
     sons.giro.pause();
+    sons.giro.currentTime = 0;
     
-    // Calcular duração da desaceleração baseada na velocidade atual e distância
+    // Calcular duração da desaceleração baseada na distância
     const distanciaRestante = Math.abs(anguloFinal - gameState.anguloAtual);
-    const duracaoBase = Math.max(2000, Math.min(5000, distanciaRestante / 100));
-    const duracaoDesaceleracao = duracaoBase + (gameState.velocidadeAtual * 50);
+    const duracaoDesaceleracao = Math.min(4000, Math.max(2000, distanciaRestante / 150));
     
     const tempoInicio = Date.now();
     const anguloInicial = gameState.anguloAtual;
-    const velocidadeInicial = gameState.velocidadeAtual;
     
     // Tocar som de desaceleração
-    sons.parada.play();
+    sons.parada.currentTime = 0;
+    sons.parada.play().catch(() => {});
     
-    let ultimoTick = 0;
-    
-    function animarDesaceleracao() {
+    function animar() {
         const tempoDecorrido = Date.now() - tempoInicio;
         const progresso = Math.min(tempoDecorrido / duracaoDesaceleracao, 1);
         
-        // Função de easing mais realista (desaceleração exponencial suave)
-        const progressoSuave = 1 - Math.pow(1 - progresso, 3.5);
+        // Função de easing mais realista (desaceleração exponencial)
+        const progressoSuave = 1 - Math.pow(1 - progresso, 4);
         
-        // Calcular ângulo atual
         gameState.anguloAtual = anguloInicial + (anguloFinal - anguloInicial) * progressoSuave;
-        
-        // Calcular velocidade atual para efeitos visuais
-        const velocidadeAtual = velocidadeInicial * (1 - progresso);
-        
-        // Aplicar rotação
         elements.roleta.style.transform = `rotate(${gameState.anguloAtual}deg)`;
         
-        // Efeito visual de desaceleração
-        const intensidadeBrilho = Math.max(0, velocidadeAtual / roletaConfig.velocidadeMaxima);
-        elements.roleta.style.filter = `brightness(${1 + intensidadeBrilho * 0.3}) saturate(${1 + intensidadeBrilho * 0.2})`;
-        
-        // Efeito sonoro de tick durante desaceleração
-        const agora = Date.now();
-        const intervaloTick = Math.max(100, 150 + (progresso * 300));
-        if (agora - ultimoTick > intervaloTick && progresso < 0.9) {
-            sons.tick.play();
-            ultimoTick = agora;
-        }
-        
-        // Efeito de "clique" nos setores durante a fase final
-        if (progresso > 0.8 && Math.random() < 0.2) {
-            elements.roleta.style.transform += ' scale(1.005)';
+        // Efeito de "clique" nos setores durante a desaceleração
+        if (progresso > 0.7 && Math.random() < 0.3) {
+            elements.roleta.style.transform += ' scale(1.01)';
             setTimeout(() => {
                 elements.roleta.style.transform = `rotate(${gameState.anguloAtual}deg)`;
-            }, 30);
+            }, 50);
         }
         
         if (progresso < 1) {
-            gameState.animacaoId = requestAnimationFrame(animarDesaceleracao);
+            gameState.animacaoId = requestAnimationFrame(animar);
         } else {
             // Finalizar giro
-            finalizarGiroAprimorado(premioGanho);
+            finalizarGiro(premioGanho);
         }
     }
     
-    animarDesaceleracao();
+    animar();
 }
 
-// FINALIZAR GIRO APRIMORADO
-function finalizarGiroAprimorado(premioGanho) {
-    console.log('Finalizando giro aprimorado com prêmio:', premioGanho);
+// Finalizar giro
+function finalizarGiro(premioGanho) {
+    console.log('Finalizando giro com prêmio:', premioGanho);
     
     // Marcar como não girando
     gameState.roletaGirando = false;
     
-    // Limpar animações
-    if (gameState.animacaoId) {
-        cancelAnimationFrame(gameState.animacaoId);
-        gameState.animacaoId = null;
+    // Restaurar interface dos botões - FORÇAR a troca de volta
+    if (elements.btnGirar && elements.btnParar) {
+        elements.btnParar.style.display = 'none';
+        elements.btnParar.classList.add('hidden');
+        
+        elements.btnGirar.style.display = 'flex';
+        elements.btnGirar.classList.remove('hidden');
+        
+        console.log('Botões restaurados: PARAR oculto, GIRAR visível');
     }
     
-    // Restaurar interface dos botões
-    trocarBotoes(false);
-    
     // Remover classes de animação dinâmica
-    removerClassesGiro();
+    const roletaContainer = document.getElementById('roleta-gratis-container');
+    const roletaWrapper = document.querySelector('.roleta-premium-wrapper');
+    const premiosInfo = document.getElementById('giros-premios-info');
+    
+    if (roletaContainer) roletaContainer.classList.remove('girando');
+    if (roletaWrapper) roletaWrapper.classList.remove('girando');
+    if (premiosInfo) premiosInfo.classList.remove('hidden');
     
     // Remover classe de giro da roleta
     elements.roleta.classList.remove('girando');
     
-    // Restaurar filtros visuais
-    elements.roleta.style.filter = 'none';
-    
     // Atualizar estado do jogo
-    gameState.girosGratis--;
     gameState.girosUsados++;
+    gameState.girosGratis--;
     gameState.saldo += premioGanho;
     
     // Salvar estado
@@ -556,36 +454,49 @@ function finalizarGiroAprimorado(premioGanho) {
     // Atualizar interface
     atualizarInterface();
     
-    // Mostrar resultado com delay para efeito dramático
-    setTimeout(() => {
-        if (premioGanho > 0) {
-            criarConfetes();
-            sons.vitoria.play();
-        } else {
-            sons.derrota.play();
-        }
-        
-        mostrarModalResultado(premioGanho);
-    }, 500);
+    // Mostrar modal de resultado
+    mostrarModalResultado(premioGanho);
+    
+    // Tocar som baseado no resultado
+    if (premioGanho > 0) {
+        sons.vitoria.currentTime = 0;
+        sons.vitoria.play().catch(() => {});
+    } else {
+        sons.derrota.currentTime = 0;
+        sons.derrota.play().catch(() => {});
+    }
 }
 
 // Mostrar modal de resultado
-function mostrarModalResultado(premioGanho) {
-    // Configurar conteúdo do modal
-    if (premioGanho > 0) {
+function mostrarModalResultado(premio) {
+    if (premio > 0) {
         elements.resultadoTitulo.textContent = 'Parabéns!';
         elements.resultadoDescricao.textContent = 'Você ganhou um prêmio!';
         elements.resultadoIcon.innerHTML = '<i class="fas fa-trophy"></i>';
-        elements.resultadoIcon.style.background = 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)';
+        elements.resultadoIcon.style.color = '#ffd700';
+        elements.premioValor.textContent = `R$ ${premio.toFixed(2).replace('.', ',')}`;
+        elements.premioDisplay.style.display = 'block';
+        
+        // Tocar som de vitória
+        sons.vitoria.currentTime = 0;
+        sons.vitoria.play().catch(() => {});
+        
+        // Criar efeito de confetes
+        criarConfetes();
     } else {
+        // Derrota
         elements.resultadoTitulo.textContent = 'Que pena!';
-        elements.resultadoDescricao.textContent = 'Não foi desta vez, mas continue tentando!';
-        elements.resultadoIcon.innerHTML = '<i class="fas fa-heart-broken"></i>';
-        elements.resultadoIcon.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%)';
+        elements.resultadoDescricao.textContent = 'Não foi dessa vez, tente novamente!';
+        elements.resultadoIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
+        elements.resultadoIcon.style.color = '#ff6b6b';
+        elements.premioDisplay.style.display = 'none';
+        
+        // Tocar som de derrota
+        sons.derrota.currentTime = 0;
+        sons.derrota.play().catch(() => {});
     }
     
-    // Atualizar valores
-    elements.premioValor.textContent = `R$ ${premioGanho.toFixed(2).replace('.', ',')}`;
+    // Atualizar informações do modal
     elements.novoSaldo.textContent = gameState.saldo.toFixed(2).replace('.', ',');
     elements.girosRestantesCount.textContent = gameState.girosGratis;
     
@@ -635,6 +546,12 @@ function atualizarInterface() {
         elements.girosTitle.textContent = 'Sem mais giros grátis';
         elements.girosSubtitle.textContent = 'Experimente nossas mesas com apostas abaixo!';
         
+        // Trocar ícone do tier
+        const tierIcon = elements.girosGratisInfo.querySelector('.mesa-tier i');
+        if (tierIcon) {
+            tierIcon.className = 'fas fa-gift';
+        }
+        
     } else {
         // Usuário não logado
         elements.girosInfo.style.display = 'none';
@@ -659,7 +576,7 @@ function jogarMesaPaga(valor) {
     mostrarToast(`Mesa R$ ${valor},00 em desenvolvimento!`, 'info');
 }
 
-// Mostrar toast notification aprimorado
+// Mostrar toast notification
 function mostrarToast(mensagem, tipo = 'info') {
     const toast = document.createElement('div');
     toast.className = 'toast';
@@ -684,22 +601,18 @@ function mostrarToast(mensagem, tipo = 'info') {
             toast.style.color = '#ffffff';
     }
     
-    // Estilo do toast aprimorado
-    Object.assign(toast.style, {
-        position: 'fixed',
-        top: '20px',
-        right: '20px',
-        padding: '1rem 1.5rem',
-        borderRadius: '12px',
-        fontWeight: '600',
-        fontSize: '0.9rem',
-        zIndex: '10000',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-        transform: 'translateX(100%)',
-        transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(255, 255, 255, 0.2)'
-    });
+    // Estilo do toast
+    toast.style.position = 'fixed';
+    toast.style.top = '20px';
+    toast.style.right = '20px';
+    toast.style.padding = '1rem 1.5rem';
+    toast.style.borderRadius = '12px';
+    toast.style.fontWeight = '600';
+    toast.style.fontSize = '0.9rem';
+    toast.style.zIndex = '10000';
+    toast.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
+    toast.style.transform = 'translateX(100%)';
+    toast.style.transition = 'transform 0.3s ease';
     
     elements.toastContainer.appendChild(toast);
     
@@ -715,11 +628,11 @@ function mostrarToast(mensagem, tipo = 'info') {
             if (toast.parentNode) {
                 toast.parentNode.removeChild(toast);
             }
-        }, 400);
+        }, 300);
     }, 4000);
 }
 
-// Criar efeito de confetes aprimorado
+// Criar efeito de confetes
 function criarConfetes() {
     const container = document.querySelector('.confetti-container');
     if (!container) return;
@@ -727,164 +640,82 @@ function criarConfetes() {
     // Limpar confetes existentes
     container.innerHTML = '';
     
-    const cores = ['#ffd700', '#ff6b6b', '#4ecdc4', '#8a2be2', '#00ff88', '#ff9f43', '#ff6b9d'];
-    const formas = ['circle', 'square', 'triangle'];
+    const cores = ['#ffd700', '#ff6b6b', '#4ecdc4', '#8a2be2', '#00ff88'];
     
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 50; i++) {
         const confete = document.createElement('div');
-        const forma = formas[Math.floor(Math.random() * formas.length)];
-        const cor = cores[Math.floor(Math.random() * cores.length)];
-        const tamanho = Math.random() * 8 + 4;
-        
-        Object.assign(confete.style, {
-            position: 'absolute',
-            width: `${tamanho}px`,
-            height: `${tamanho}px`,
-            backgroundColor: cor,
-            left: Math.random() * 100 + '%',
-            top: '-20px',
-            zIndex: '9999',
-            pointerEvents: 'none'
-        });
-        
-        // Aplicar forma
-        if (forma === 'circle') {
-            confete.style.borderRadius = '50%';
-        } else if (forma === 'triangle') {
-            confete.style.width = '0';
-            confete.style.height = '0';
-            confete.style.backgroundColor = 'transparent';
-            confete.style.borderLeft = `${tamanho/2}px solid transparent`;
-            confete.style.borderRight = `${tamanho/2}px solid transparent`;
-            confete.style.borderBottom = `${tamanho}px solid ${cor}`;
-        }
-        
-        // Animação personalizada
-        const duracao = 2 + Math.random() * 4;
-        const rotacao = Math.random() * 720 + 360;
-        const deslocamentoX = (Math.random() - 0.5) * 200;
-        
-        confete.style.animation = `confettiFallAprimorado ${duracao}s linear forwards`;
-        confete.style.setProperty('--rotacao', `${rotacao}deg`);
-        confete.style.setProperty('--deslocamento-x', `${deslocamentoX}px`);
+        confete.style.position = 'absolute';
+        confete.style.width = '10px';
+        confete.style.height = '10px';
+        confete.style.backgroundColor = cores[Math.floor(Math.random() * cores.length)];
+        confete.style.left = Math.random() * 100 + '%';
+        confete.style.top = '-10px';
+        confete.style.borderRadius = '50%';
+        confete.style.animation = `confettiFall ${2 + Math.random() * 3}s linear forwards`;
+        confete.style.zIndex = '9999';
         
         container.appendChild(confete);
     }
     
-    // Adicionar animação CSS aprimorada se não existir
-    if (!document.querySelector('#confetti-animation-aprimorada')) {
+    // Adicionar animação CSS se não existir
+    if (!document.querySelector('#confetti-animation')) {
         const style = document.createElement('style');
-        style.id = 'confetti-animation-aprimorada';
+        style.id = 'confetti-animation';
         style.textContent = `
-            @keyframes confettiFallAprimorado {
+            @keyframes confettiFall {
+                to {
+                    transform: translateY(500px) rotate(720deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// Criar partículas de fundo
+function criarParticulas() {
+    const particlesContainer = document.getElementById('particles-bg');
+    if (!particlesContainer) return;
+    
+    for (let i = 0; i < 20; i++) {
+        const particula = document.createElement('div');
+        particula.style.position = 'absolute';
+        particula.style.width = Math.random() * 4 + 2 + 'px';
+        particula.style.height = particula.style.width;
+        particula.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
+        particula.style.borderRadius = '50%';
+        particula.style.left = Math.random() * 100 + '%';
+        particula.style.top = Math.random() * 100 + '%';
+        particula.style.animation = `particleFloat ${10 + Math.random() * 20}s linear infinite`;
+        particula.style.animationDelay = Math.random() * 10 + 's';
+        
+        particlesContainer.appendChild(particula);
+    }
+    
+    // Adicionar animação CSS se não existir
+    if (!document.querySelector('#particle-animation')) {
+        const style = document.createElement('style');
+        style.id = 'particle-animation';
+        style.textContent = `
+            @keyframes particleFloat {
                 0% {
-                    transform: translateY(0) translateX(0) rotate(0deg) scale(1);
-                    opacity: 1;
+                    transform: translateY(0px) translateX(0px) rotate(0deg);
+                    opacity: 0;
                 }
                 10% {
                     opacity: 1;
                 }
                 90% {
-                    opacity: 0.7;
-                }
-                100% {
-                    transform: translateY(100vh) translateX(var(--deslocamento-x)) rotate(var(--rotacao)) scale(0.5);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-}
-
-// Criar partículas de fundo aprimoradas
-function criarParticulas() {
-    const particlesContainer = document.getElementById('particles-bg');
-    if (!particlesContainer) return;
-    
-    for (let i = 0; i < 30; i++) {
-        const particula = document.createElement('div');
-        const tamanho = Math.random() * 6 + 2;
-        const cor = Math.random() > 0.5 ? 'rgba(255, 215, 0, 0.4)' : 'rgba(138, 43, 226, 0.3)';
-        
-        Object.assign(particula.style, {
-            position: 'absolute',
-            width: `${tamanho}px`,
-            height: `${tamanho}px`,
-            backgroundColor: cor,
-            borderRadius: '50%',
-            left: Math.random() * 100 + '%',
-            top: Math.random() * 100 + '%',
-            pointerEvents: 'none',
-            filter: 'blur(1px)'
-        });
-        
-        const duracao = 15 + Math.random() * 25;
-        const delay = Math.random() * 10;
-        particula.style.animation = `particleFloatAprimorado ${duracao}s linear infinite`;
-        particula.style.animationDelay = `${delay}s`;
-        
-        particlesContainer.appendChild(particula);
-    }
-    
-    // Adicionar animação CSS aprimorada se não existir
-    if (!document.querySelector('#particle-animation-aprimorada')) {
-        const style = document.createElement('style');
-        style.id = 'particle-animation-aprimorada';
-        style.textContent = `
-            @keyframes particleFloatAprimorado {
-                0% {
-                    transform: translateY(0px) translateX(0px) rotate(0deg) scale(0);
-                    opacity: 0;
-                }
-                5% {
                     opacity: 1;
-                    transform: translateY(-10px) translateX(5px) rotate(45deg) scale(1);
-                }
-                95% {
-                    opacity: 0.8;
                 }
                 100% {
-                    transform: translateY(-100vh) translateX(100px) rotate(360deg) scale(0);
+                    transform: translateY(-100vh) translateX(50px) rotate(360deg);
                     opacity: 0;
                 }
             }
         `;
         document.head.appendChild(style);
-    }
-}
-
-// Inicializar efeitos visuais aprimorados
-function inicializarEfeitosVisuais() {
-    // Efeito de hover nos setores da roleta
-    const setores = document.querySelectorAll('.setor');
-    setores.forEach((setor, index) => {
-        setor.addEventListener('mouseenter', () => {
-            if (!gameState.roletaGirando) {
-                setor.style.transform += ' scale(1.05)';
-                setor.style.zIndex = '10';
-            }
-        });
-        
-        setor.addEventListener('mouseleave', () => {
-            if (!gameState.roletaGirando) {
-                setor.style.transform = setor.style.transform.replace(' scale(1.05)', '');
-                setor.style.zIndex = 'auto';
-            }
-        });
-    });
-    
-    // Efeito de pulsação no centro da roleta
-    const centro = document.querySelector('.roleta-center-aprimorada');
-    if (centro) {
-        setInterval(() => {
-            if (!gameState.roletaGirando) {
-                centro.style.transform += ' scale(1.1)';
-                setTimeout(() => {
-                    centro.style.transform = centro.style.transform.replace(' scale(1.1)', '');
-                }, 200);
-            }
-        }, 3000);
     }
 }
 
@@ -898,9 +729,7 @@ function resetarJogo() {
         primeiroDeposito: false,
         roletaGirando: false,
         timeoutGiro: null,
-        anguloAtual: 0,
-        animacaoId: null,
-        velocidadeAtual: 0
+        anguloAtual: 0
     };
     localStorage.removeItem('roletaUser');
     atualizarInterface();
@@ -909,5 +738,3 @@ function resetarJogo() {
 
 // Expor função para console (desenvolvimento)
 window.resetarJogo = resetarJogo;
-window.gameState = gameState;
-
