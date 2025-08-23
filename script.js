@@ -209,6 +209,15 @@ function girarRoleta() {
     elements.btnGirar.classList.add('hidden');
     elements.btnParar.classList.remove('hidden');
     
+    // Adicionar classes para animação dinâmica
+    const roletaContainer = document.getElementById('roleta-gratis-container');
+    const roletaWrapper = document.querySelector('.roleta-premium-wrapper');
+    const premiosInfo = document.getElementById('giros-premios-info');
+    
+    roletaContainer.classList.add('girando');
+    roletaWrapper.classList.add('girando');
+    premiosInfo.classList.add('hidden');
+    
     // Tocar som de giro
     sons.giro.currentTime = 0;
     sons.giro.play().catch(() => {});
@@ -322,6 +331,21 @@ function aplicarDesaceleracao(anguloFinal, premioGanho) {
 
 // Finalizar giro
 function finalizarGiro(premioGanho) {
+    // Marcar como não girando
+    gameState.roletaGirando = false;
+    
+    // Remover classes de animação dinâmica
+    const roletaContainer = document.getElementById('roleta-gratis-container');
+    const roletaWrapper = document.querySelector('.roleta-premium-wrapper');
+    const premiosInfo = document.getElementById('giros-premios-info');
+    
+    roletaContainer.classList.remove('girando');
+    roletaWrapper.classList.remove('girando');
+    premiosInfo.classList.remove('hidden');
+    
+    // Remover classe girando da roleta
+    elements.roleta.classList.remove('girando');
+    
     // Atualizar estado do jogo
     gameState.girosGratis--;
     gameState.girosUsados++;
