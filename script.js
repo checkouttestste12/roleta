@@ -98,28 +98,45 @@ function salvarEstadoJogo() {
 
 // Inicializar event listeners
 function inicializarEventListeners() {
+    // Verificar se todos os elementos existem antes de adicionar event listeners
+    if (!elements.btnGirar || !elements.btnParar) {
+        console.error('Elementos de botão não encontrados');
+        return;
+    }
+    
     // Botões de controle da roleta
     elements.btnGirar.addEventListener('click', handleGirarClick);
     elements.btnParar.addEventListener('click', handlePararClick);
     
+    // Garantir que o botão parar esteja inicialmente oculto
+    elements.btnParar.classList.add('hidden');
+    
     // Formulário de cadastro
-    elements.cadastroForm.addEventListener('submit', handleCadastro);
+    if (elements.cadastroForm) {
+        elements.cadastroForm.addEventListener('submit', handleCadastro);
+    }
     
     // Botão continuar do modal de resultado
-    elements.btnContinuar.addEventListener('click', fecharModalResultado);
+    if (elements.btnContinuar) {
+        elements.btnContinuar.addEventListener('click', fecharModalResultado);
+    }
     
     // Fechar modal clicando no backdrop
-    elements.cadastroOverlay.addEventListener('click', function(e) {
-        if (e.target === elements.cadastroOverlay) {
-            fecharModalCadastro();
-        }
-    });
+    if (elements.cadastroOverlay) {
+        elements.cadastroOverlay.addEventListener('click', function(e) {
+            if (e.target === elements.cadastroOverlay) {
+                fecharModalCadastro();
+            }
+        });
+    }
     
-    elements.resultadoModal.addEventListener('click', function(e) {
-        if (e.target === elements.resultadoModal) {
-            fecharModalResultado();
-        }
-    });
+    if (elements.resultadoModal) {
+        elements.resultadoModal.addEventListener('click', function(e) {
+            if (e.target === elements.resultadoModal) {
+                fecharModalResultado();
+            }
+        });
+    }
     
     // Botões das mesas pagas
     document.querySelectorAll('.mesa-card[data-valor]').forEach(mesa => {
@@ -230,15 +247,41 @@ function girarRoleta() {
 
 // Iniciar giro contínuo
 function iniciarGiroContinuo() {
-    let velocidade = roletaConfig.velocidadeInicial;
+    let velocidade = Math.random() * 15 + 10; // Velocidade inicial aleatória entre 10-25
+    let aceleracao = Math.random() * 2 + 1; // Aceleração inicial
+    let tempoAceleracao = Math.random() * 1000 + 500; // Tempo de aceleração (0.5-1.5s)
+    let tempoInicio = Date.now();
+    
+    // Adicionar classe de giro à roleta
+    elements.roleta.classList.add('girando');
     
     function animar() {
         if (!gameState.roletaGirando) return;
         
+        const tempoDecorrido = Date.now() - tempoInicio;
+        
+        // Fase de aceleração inicial
+        if (tempoDecorrido < tempoAceleracao) {
+            velocidade += aceleracao * 0.1;
+            velocidade = Math.min(velocidade, 30); // Velocidade máxima
+        } else {
+            // Fase de velocidade constante com pequenas variações
+            velocidade += (Math.random() - 0.5) * 0.5;
+            velocidade = Math.max(8, Math.min(velocidade, 25));
+        }
+        
         gameState.anguloAtual += velocidade;
+        gameState.anguloAtual %= 360;
+        
         elements.roleta.style.transform = `rotate(${gameState.anguloAtual}deg)`;
         
-        requestAnimationFrame(animar);
+        // Efeito sonoro variável baseado na velocidade
+        if (Math.random() < 0.1) { // 10% de chance por frame
+            const pitch = 0.8 + (velocidade / 30) * 0.4; // Pitch varia com a velocidade
+            sons.giro.playbackRate = pitch;
+        }
+        
+        gameState.animacaoId = requestAnimationFrame(animar);
     }
     
     animar();
@@ -248,22 +291,19 @@ function iniciarGiroContinuo() {
 function pararRoleta() {
     if (!gameState.roletaGirando) return;
     
-    // Marcar como não girando
+    // Marcar como não girando para parar a animação
     gameState.roletaGirando = false;
     
-    // Parar som de giro
-    sons.giro.pause();
-    sons.giro.currentTime = 0;
+    // Cancelar animação se existir
+    if (gameState.animacaoId) {
+        cancelAnimationFrame(gameState.animacaoId);
+        gameState.animacaoId = null;
+    }
     
-    // Tocar som de parada
-    sons.parada.currentTime = 0;
-    sons.parada.play().catch(() => {});
-    
-    // Determinar prêmio baseado no número do giro
+    // Determinar prêmio baseado no número de giros
     let premioGarantido = null;
-    if (gameState.girosUsados === 1) {
-        // Segundo giro sempre ganha R$ 75,00
-        premioGarantido = 75;
+    if (gameState.girosUsados === 1) { // Segunda rodada (índice 1 = segunda rodada)
+        premioGarantido = 75; // Garantir R$ 75,00 na segunda rodada
     }
     
     // Calcular posição final
@@ -271,6 +311,11 @@ function pararRoleta() {
     
     // Aplicar animação de desaceleração até a posição final
     aplicarDesaceleracao(anguloFinal, premioGanho);
+}
+
+// Handle click no botão parar
+function handlePararClick() {
+    pararRoleta();
 }
 
 // Calcular posição final da roleta
@@ -302,26 +347,43 @@ function calcularPosicaoFinal(premioGarantido = null) {
 
 // Aplicar desaceleração até a posição final
 function aplicarDesaceleracao(anguloFinal, premioGanho) {
-    const anguloInicial = gameState.anguloAtual;
-    const distanciaTotal = anguloFinal - anguloInicial;
-    const duracaoDesaceleracao = 2000; // 2 segundos
+    // Parar som de giro
+    sons.giro.pause();
+    sons.giro.currentTime = 0;
+    
+    // Calcular duração da desaceleração baseada na distância
+    const distanciaRestante = Math.abs(anguloFinal - gameState.anguloAtual);
+    const duracaoDesaceleracao = Math.min(4000, Math.max(2000, distanciaRestante / 150));
+    
     const tempoInicio = Date.now();
+    const anguloInicial = gameState.anguloAtual;
+    
+    // Tocar som de desaceleração
+    sons.parada.currentTime = 0;
+    sons.parada.play().catch(() => {});
     
     function animar() {
         const tempoDecorrido = Date.now() - tempoInicio;
         const progresso = Math.min(tempoDecorrido / duracaoDesaceleracao, 1);
         
-        // Função de easing para desaceleração suave
-        const progressoSuave = 1 - Math.pow(1 - progresso, 3);
+        // Função de easing mais realista (desaceleração exponencial)
+        const progressoSuave = 1 - Math.pow(1 - progresso, 4);
         
-        const anguloAtual = anguloInicial + (distanciaTotal * progressoSuave);
-        elements.roleta.style.transform = `rotate(${anguloAtual}deg)`;
+        gameState.anguloAtual = anguloInicial + (anguloFinal - anguloInicial) * progressoSuave;
+        elements.roleta.style.transform = `rotate(${gameState.anguloAtual}deg)`;
+        
+        // Efeito de "clique" nos setores durante a desaceleração
+        if (progresso > 0.7 && Math.random() < 0.3) {
+            elements.roleta.style.transform += ' scale(1.01)';
+            setTimeout(() => {
+                elements.roleta.style.transform = `rotate(${gameState.anguloAtual}deg)`;
+            }, 50);
+        }
         
         if (progresso < 1) {
-            requestAnimationFrame(animar);
+            gameState.animacaoId = requestAnimationFrame(animar);
         } else {
             // Finalizar giro
-            gameState.anguloAtual = anguloFinal;
             finalizarGiro(premioGanho);
         }
     }
