@@ -691,13 +691,49 @@ body {
 .btn-parar {
     background: linear-gradient(135deg, #ff4757 0%, #ff3742 100%);
     color: #ffffff;
-    box-shadow: 0 8px 32px rgba(255, 71, 87, 0.3);
-    animation: pulseRed 1.5s ease-in-out infinite;
+    box-shadow: 0 8px 32px rgba(255, 71, 87, 0.4);
+    animation: pulseStop 2s ease-in-out infinite;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
 }
 
-@keyframes pulseRed {
-    0%, 100% { box-shadow: 0 8px 32px rgba(255, 71, 87, 0.3); }
-    50% { box-shadow: 0 12px 40px rgba(255, 71, 87, 0.6); }
+.btn-parar:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(255, 71, 87, 0.6);
+    background: linear-gradient(135deg, #ff6b7a 0%, #ff4757 100%);
+    animation: none;
+}
+
+.btn-parar:active {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
+}
+
+.btn-parar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-parar:hover::before {
+    left: 100%;
+}
+
+@keyframes pulseStop {
+    0%, 100% {
+        box-shadow: 0 8px 32px rgba(255, 71, 87, 0.4);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 12px 40px rgba(255, 71, 87, 0.7);
+        transform: scale(1.03);
+    }
 }
 
 .btn-giros-gratis {
