@@ -230,83 +230,46 @@
                         <div class="mesa-subtitle" id="giros-subtitle">Cadastre-se e ganhe até R$ 75,00!</div>
                     </div>
                     
-                    <!-- ROLETA CENTRALIZADA E MELHORADA -->
-                    <div class="mesa-roleta-display" id="roleta-gratis-container">
-                        <div class="roleta-premium-wrapper">
-                            <!-- Ponteiro fixo no topo -->
-                            <div class="roleta-ponteiro-premium">
-                                <div class="ponteiro-triangle"></div>
-                                <div class="ponteiro-glow"></div>
-                            </div>
-                            
-                            <!-- Roleta com setores melhorados -->
-                            <div class="roleta-premium" id="roleta">
-                                <!-- Setor 1 - Vazio -->
+                    <!-- ROLETA CENTRALIZADA E APRIMORADA -->
+                    <div class="mesa-roleta-display-centralizada" id="roleta-gratis-container">
+                        <div class="roleta-premium-wrapper-centralizada">
+                            <div class="roleta-premium-aprimorada" id="roleta">
+                                <!-- Setores da roleta com valores visíveis -->
                                 <div class="setor setor-vazio" data-premio="0" data-angulo="0">
-                                    <div class="setor-content">
-                                        <span class="setor-text">VAZIO</span>
-                                    </div>
+                                    <span class="setor-text"></span>
                                 </div>
-                                
-                                <!-- Setor 2 - R$ 25 -->
                                 <div class="setor setor-premio setor-baixo" data-premio="25" data-angulo="45">
-                                    <div class="setor-content">
-                                        <span class="setor-valor">R$ 25</span>
-                                        <div class="setor-shine"></div>
-                                    </div>
+                                    <span class="setor-text">R$ 25</span>
+                                    <div class="setor-shine"></div>
                                 </div>
-                                
-                                <!-- Setor 3 - Vazio -->
                                 <div class="setor setor-vazio" data-premio="0" data-angulo="90">
-                                    <div class="setor-content">
-                                        <span class="setor-text">VAZIO</span>
-                                    </div>
+                                    <span class="setor-text"></span>
                                 </div>
-                                
-                                <!-- Setor 4 - R$ 50 -->
                                 <div class="setor setor-premio setor-medio" data-premio="50" data-angulo="135">
-                                    <div class="setor-content">
-                                        <span class="setor-valor">R$ 50</span>
-                                        <div class="setor-shine"></div>
-                                    </div>
+                                    <span class="setor-text">R$ 50</span>
+                                    <div class="setor-shine"></div>
                                 </div>
-                                
-                                <!-- Setor 5 - Vazio -->
                                 <div class="setor setor-vazio" data-premio="0" data-angulo="180">
-                                    <div class="setor-content">
-                                        <span class="setor-text">VAZIO</span>
-                                    </div>
+                                    <span class="setor-text"></span>
                                 </div>
-                                
-                                <!-- Setor 6 - R$ 75 -->
                                 <div class="setor setor-premio setor-alto" data-premio="75" data-angulo="225">
-                                    <div class="setor-content">
-                                        <span class="setor-valor">R$ 75</span>
-                                        <div class="setor-shine"></div>
-                                    </div>
+                                    <span class="setor-text">R$ 75</span>
+                                    <div class="setor-shine"></div>
                                 </div>
-                                
-                                <!-- Setor 7 - Vazio -->
                                 <div class="setor setor-vazio" data-premio="0" data-angulo="270">
-                                    <div class="setor-content">
-                                        <span class="setor-text">VAZIO</span>
-                                    </div>
+                                    <span class="setor-text"></span>
                                 </div>
-                                
-                                <!-- Setor 8 - Vazio -->
                                 <div class="setor setor-vazio" data-premio="0" data-angulo="315">
-                                    <div class="setor-content">
-                                        <span class="setor-text">VAZIO</span>
-                                    </div>
+                                    <span class="setor-text"></span>
                                 </div>
                             </div>
-                            
-                            <!-- Centro da roleta -->
-                            <div class="roleta-center">
+                            <div class="roleta-center-aprimorada">
                                 <div class="center-logo">
                                     <i class="fas fa-crown"></i>
                                 </div>
-                                <div class="center-text">WIN</div>
+                            </div>
+                            <div class="roleta-ponteiro-premium-aprimorado">
+                                <div class="ponteiro-glow"></div>
                             </div>
                         </div>
                     </div>
@@ -332,7 +295,7 @@
                         </div>
                     </div>
                     
-                    <div class="botoes-controle">
+                    <div class="botoes-controle-centralizados">
                         <button class="btn-jogar btn-giros-gratis" id="btn-girar">
                             <div class="btn-bg"></div>
                             <span class="btn-text">GIRAR</span>
@@ -352,6 +315,212 @@
                             <span>Giros restantes: <strong id="giros-count">3</strong></span>
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção Mesas Premium -->
+        <section id="mesas" class="mesas-section">
+            <div class="section-header">
+                <div class="section-badge">
+                    <i class="fas fa-star"></i>
+                    <span>MESAS PREMIUM</span>
+                </div>
+                <h2>Mesas com Apostas</h2>
+                <p>Escolha sua mesa e teste sua sorte com prêmios incríveis</p>
+            </div>
+            
+            <div class="mesas-grid">
+                <div class="mesa-card mesa-bronze" data-valor="5">
+                    <div class="mesa-glow"></div>
+                    <div class="mesa-header">
+                        <div class="mesa-tier">
+                            <i class="fas fa-medal"></i>
+                            <span>BRONZE</span>
+                        </div>
+                        <h3>Mesa R$ 5,00</h3>
+                        <div class="mesa-subtitle">Entrada Básica</div>
+                    </div>
+                    
+                    <div class="mesa-roleta-display">
+                        <div class="roleta-mini">
+                            <div class="mini-sectors"></div>
+                            <div class="mini-center">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mesa-premios">
+                        <div class="premios-header">
+                            <i class="fas fa-trophy"></i>
+                            <span>Prêmios Possíveis</span>
+                        </div>
+                        <div class="premios-list">
+                            <div class="premio-item">
+                                <div class="premio-valor">R$ 10,00</div>
+                                <div class="premio-chance">30%</div>
+                            </div>
+                            <div class="premio-item">
+                                <div class="premio-valor">R$ 15,00</div>
+                                <div class="premio-chance">20%</div>
+                            </div>
+                            <div class="premio-item premio-destaque">
+                                <div class="premio-valor">R$ 25,00</div>
+                                <div class="premio-chance">10%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-jogar btn-bronze">
+                        <div class="btn-bg"></div>
+                        <span class="btn-text">JOGAR AGORA</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <div class="mesa-card mesa-prata" data-valor="10">
+                    <div class="mesa-glow"></div>
+                    <div class="mesa-header">
+                        <div class="mesa-tier">
+                            <i class="fas fa-medal"></i>
+                            <span>PRATA</span>
+                        </div>
+                        <h3>Mesa R$ 10,00</h3>
+                        <div class="mesa-subtitle">Entrada Intermediária</div>
+                    </div>
+                    
+                    <div class="mesa-roleta-display">
+                        <div class="roleta-mini">
+                            <div class="mini-sectors"></div>
+                            <div class="mini-center">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mesa-premios">
+                        <div class="premios-header">
+                            <i class="fas fa-trophy"></i>
+                            <span>Prêmios Possíveis</span>
+                        </div>
+                        <div class="premios-list">
+                            <div class="premio-item">
+                                <div class="premio-valor">R$ 20,00</div>
+                                <div class="premio-chance">30%</div>
+                            </div>
+                            <div class="premio-item">
+                                <div class="premio-valor">R$ 30,00</div>
+                                <div class="premio-chance">20%</div>
+                            </div>
+                            <div class="premio-item premio-destaque">
+                                <div class="premio-valor">R$ 50,00</div>
+                                <div class="premio-chance">10%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-jogar btn-prata">
+                        <div class="btn-bg"></div>
+                        <span class="btn-text">JOGAR AGORA</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <div class="mesa-card mesa-ouro" data-valor="25">
+                    <div class="mesa-glow"></div>
+                    <div class="mesa-header">
+                        <div class="mesa-tier">
+                            <i class="fas fa-crown"></i>
+                            <span>OURO</span>
+                        </div>
+                        <h3>Mesa R$ 25,00</h3>
+                        <div class="mesa-subtitle">Entrada Premium</div>
+                    </div>
+                    
+                    <div class="mesa-roleta-display">
+                        <div class="roleta-mini">
+                            <div class="mini-sectors"></div>
+                            <div class="mini-center">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mesa-premios">
+                        <div class="premios-header">
+                            <i class="fas fa-trophy"></i>
+                            <span>Prêmios Possíveis</span>
+                        </div>
+                        <div class="premios-list">
+                            <div class="premio-item">
+                                <div class="premio-valor">R$ 50,00</div>
+                                <div class="premio-chance">25%</div>
+                            </div>
+                            <div class="premio-item">
+                                <div class="premio-valor">R$ 75,00</div>
+                                <div class="premio-chance">15%</div>
+                            </div>
+                            <div class="premio-item premio-destaque">
+                                <div class="premio-valor">R$ 125,00</div>
+                                <div class="premio-chance">8%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-jogar btn-ouro">
+                        <div class="btn-bg"></div>
+                        <span class="btn-text">JOGAR AGORA</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <div class="mesa-card mesa-diamante" data-valor="50">
+                    <div class="mesa-glow"></div>
+                    <div class="mesa-header">
+                        <div class="mesa-tier">
+                            <i class="fas fa-gem"></i>
+                            <span>DIAMANTE</span>
+                        </div>
+                        <h3>Mesa R$ 50,00</h3>
+                        <div class="mesa-subtitle">Entrada VIP</div>
+                    </div>
+                    
+                    <div class="mesa-roleta-display">
+                        <div class="roleta-mini">
+                            <div class="mini-sectors"></div>
+                            <div class="mini-center">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mesa-premios">
+                        <div class="premios-header">
+                            <i class="fas fa-trophy"></i>
+                            <span>Prêmios Possíveis</span>
+                        </div>
+                        <div class="premios-list">
+                            <div class="premio-item">
+                                <div class="premio-valor">R$ 100,00</div>
+                                <div class="premio-chance">25%</div>
+                            </div>
+                            <div class="premio-item">
+                                <div class="premio-valor">R$ 150,00</div>
+                                <div class="premio-chance">15%</div>
+                            </div>
+                            <div class="premio-item premio-destaque">
+                                <div class="premio-valor">R$ 250,00</div>
+                                <div class="premio-chance">5%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-jogar btn-diamante">
+                        <div class="btn-bg"></div>
+                        <span class="btn-text">JOGAR AGORA</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
                 </div>
             </div>
         </section>
