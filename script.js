@@ -72,10 +72,21 @@ Object.values(sons).forEach(som => {
 // Inicialização
 document.addEventListener('DOMContentLoaded', function() {
     console.log('App iniciado');
-    carregarEstadoJogo();
-    inicializarEventListeners();
-    atualizarInterface();
-    criarParticulas();
+    
+    // Garantir que os elementos existam antes de continuar
+    setTimeout(() => {
+        carregarEstadoJogo();
+        inicializarEventListeners();
+        atualizarInterface();
+        criarParticulas();
+        
+        // Garantir estado inicial correto dos botões
+        if (elements.btnGirar && elements.btnParar) {
+            elements.btnGirar.classList.remove('hidden');
+            elements.btnParar.classList.add('hidden');
+            console.log('Estado inicial dos botões configurado');
+        }
+    }, 100);
 });
 
 // Carregar estado do jogo do localStorage
@@ -213,27 +224,38 @@ function fecharModalCadastro() {
     document.body.style.overflow = 'auto';
 }
 
-// Girar roleta
+// Função principal para girar a roleta
 function girarRoleta() {
     if (gameState.girosGratis <= 0 || gameState.roletaGirando) {
         return;
     }
     
+    console.log('Iniciando giro da roleta');
+    
     // Marcar como girando
     gameState.roletaGirando = true;
     
-    // Atualizar interface dos botões
-    elements.btnGirar.classList.add('hidden');
-    elements.btnParar.classList.remove('hidden');
+    // Atualizar interface dos botões - FORÇAR a troca
+    if (elements.btnGirar && elements.btnParar) {
+        elements.btnGirar.style.display = 'none';
+        elements.btnGirar.classList.add('hidden');
+        
+        elements.btnParar.style.display = 'flex';
+        elements.btnParar.classList.remove('hidden');
+        
+        console.log('Botões trocados: GIRAR oculto, PARAR visível');
+    } else {
+        console.error('Elementos de botão não encontrados!');
+    }
     
     // Adicionar classes para animação dinâmica
     const roletaContainer = document.getElementById('roleta-gratis-container');
     const roletaWrapper = document.querySelector('.roleta-premium-wrapper');
     const premiosInfo = document.getElementById('giros-premios-info');
     
-    roletaContainer.classList.add('girando');
-    roletaWrapper.classList.add('girando');
-    premiosInfo.classList.add('hidden');
+    if (roletaContainer) roletaContainer.classList.add('girando');
+    if (roletaWrapper) roletaWrapper.classList.add('girando');
+    if (premiosInfo) premiosInfo.classList.add('hidden');
     
     // Tocar som de giro
     sons.giro.currentTime = 0;
@@ -393,45 +415,61 @@ function aplicarDesaceleracao(anguloFinal, premioGanho) {
 
 // Finalizar giro
 function finalizarGiro(premioGanho) {
+    console.log('Finalizando giro com prêmio:', premioGanho);
+    
     // Marcar como não girando
     gameState.roletaGirando = false;
+    
+    // Restaurar interface dos botões - FORÇAR a troca de volta
+    if (elements.btnGirar && elements.btnParar) {
+        elements.btnParar.style.display = 'none';
+        elements.btnParar.classList.add('hidden');
+        
+        elements.btnGirar.style.display = 'flex';
+        elements.btnGirar.classList.remove('hidden');
+        
+        console.log('Botões restaurados: PARAR oculto, GIRAR visível');
+    }
     
     // Remover classes de animação dinâmica
     const roletaContainer = document.getElementById('roleta-gratis-container');
     const roletaWrapper = document.querySelector('.roleta-premium-wrapper');
     const premiosInfo = document.getElementById('giros-premios-info');
     
-    roletaContainer.classList.remove('girando');
-    roletaWrapper.classList.remove('girando');
-    premiosInfo.classList.remove('hidden');
+    if (roletaContainer) roletaContainer.classList.remove('girando');
+    if (roletaWrapper) roletaWrapper.classList.remove('girando');
+    if (premiosInfo) premiosInfo.classList.remove('hidden');
     
-    // Remover classe girando da roleta
+    // Remover classe de giro da roleta
     elements.roleta.classList.remove('girando');
     
     // Atualizar estado do jogo
-    gameState.girosGratis--;
     gameState.girosUsados++;
+    gameState.girosGratis--;
     gameState.saldo += premioGanho;
     
+    // Salvar estado
     salvarEstadoJogo();
-    
-    // Atualizar interface dos botões
-    elements.btnParar.classList.add('hidden');
-    elements.btnGirar.classList.remove('hidden');
-    
-    // Mostrar resultado após um pequeno delay
-    setTimeout(() => {
-        mostrarModalResultado(premioGanho);
-    }, 500);
     
     // Atualizar interface
     atualizarInterface();
+    
+    // Mostrar modal de resultado
+    mostrarModalResultado(premioGanho);
+    
+    // Tocar som baseado no resultado
+    if (premioGanho > 0) {
+        sons.vitoria.currentTime = 0;
+        sons.vitoria.play().catch(() => {});
+    } else {
+        sons.derrota.currentTime = 0;
+        sons.derrota.play().catch(() => {});
+    }
 }
 
 // Mostrar modal de resultado
 function mostrarModalResultado(premio) {
     if (premio > 0) {
-        // Vitória
         elements.resultadoTitulo.textContent = 'Parabéns!';
         elements.resultadoDescricao.textContent = 'Você ganhou um prêmio!';
         elements.resultadoIcon.innerHTML = '<i class="fas fa-trophy"></i>';
