@@ -427,6 +427,12 @@ body {
     align-items: center;
     margin: 2rem 0;
     height: 200px;
+    transition: all 0.5s ease;
+}
+
+.mesa-roleta-display.girando {
+    height: 300px;
+    margin: 3rem 0;
 }
 
 /* Roleta Premium para Giros Grátis */
@@ -434,6 +440,13 @@ body {
     position: relative;
     width: 180px;
     height: 180px;
+    transition: all 0.5s ease;
+}
+
+.roleta-premium-wrapper.girando {
+    width: 250px;
+    height: 250px;
+    transform: scale(1.1);
 }
 
 .roleta-premium {
@@ -452,6 +465,21 @@ body {
     box-shadow: 0 0 60px rgba(255, 215, 0, 0.6), 
                 inset 0 0 30px rgba(255, 215, 0, 0.3);
     animation: roletaGlow 0.5s ease-in-out infinite alternate;
+    border-width: 4px;
+}
+
+/* Prêmios com animação de fade */
+.mesa-premios {
+    margin: 2rem 0;
+    transition: all 0.5s ease;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.mesa-premios.hidden {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
 }
 
 @keyframes roletaGlow {
